@@ -48,7 +48,7 @@ const dt=t=>new Date(t).toLocaleDateString('sw-TZ',{day:'numeric',month:'short'}
 const nm=i=>i?esc(D.lb?.find(u=>u.id==i)?.username||D.users?.find(u=>u.id==i)?.username||'?'):'BYE';
 let D={},sess=null,view='home',arg=null,adm=false,atab='sum',flt='all',ch=null;
 const refc=(new URLSearchParams(location.search).get('ref')||'').toUpperCase();let amode=refc?'reg':'login';
-function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),Math.max(2600,t.length*90))}
 function ask(title,def,cb){const m=document.createElement('div');m.className='mod';m.innerHTML=`<div class="card"><b>${title}</b><input id="mi" value="${esc(def)}"><div class="rw"><button class="btn gh" id="mx">Ghairi</button><button class="btn" id="mo">Sawa</button></div></div>`;document.body.appendChild(m);$('#mi').focus();$('#mx').onclick=()=>m.remove();$('#mo').onclick=()=>{const v=$('#mi').value;m.remove();cb(v)}}
 async function rpc(fn,args,ok){const{error}=await sb.rpc(fn,args);if(error){toast(error.message);return false}if(ok)toast(ok);await load();return true}
 sb.auth.onAuthStateChange((e,s)=>{sess=s;setTimeout(load,0)});
