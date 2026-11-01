@@ -114,9 +114,15 @@ function wallet(){const u=D.me,L=D.tx.filter(x=>x.user_id==u.id);
 const ic={deposit:'⬇ Deposit',withdraw:'⬆ Withdraw',bonus:'🎁 Bonus',entry:'🎟 Ada',prize:'🏆 Zawadi',adjust:'⚙ Marekebisho'},cl={pending:'yl',approved:'g',rejected:'rd'},lb={pending:'Inasubiri',approved:'Imekubaliwa',rejected:'Imekataliwa'};
 const mt='<option>M-Pesa</option><option>Tigo Pesa</option><option>Airtel Money</option><option>HaloPesa</option>';
 return `<div class="card hero"><div>Salio</div><div class="big">${tsh(u.balance)}</div></div>
-<div class="card"><b>Weka pesa</b><p class="mu">Tuma kwenda <b>${esc(D.set.pay_number)}</b>, kisha jaza fomu.</p><select id="dm">${mt}</select><input id="da" type="number" min="0" placeholder="Kiasi (TSh)"><input id="dr" placeholder="Namba ya muamala"><button class="btn" style="width:100%" onclick="mk('deposit')">Tuma ombi la deposit</button></div>
+<div class="card"><b>Weka pesa</b><p class="mu">Weka kiasi (angalau TSh 500) na namba ya simu ya mobile money. Utapata ujumbe kwenye simu, thibitisha kwa PIN yako.</p><input id="da" type="number" min="500" placeholder="Kiasi (TSh)"><input id="dp" inputmode="tel" placeholder="Namba ya simu, mfano 0712345678"><button class="btn" id="db" style="width:100%" onclick="dep()">Weka pesa</button></div>
 <div class="card"><b>Toa pesa</b><p class="mu">Kiwango cha chini ${tsh(D.set.min_withdraw)}</p><select id="wm">${mt}</select><input id="wa" type="number" min="0" placeholder="Kiasi (TSh)"><input id="wr" placeholder="Namba ya simu ya kupokea"><button class="btn gh" style="width:100%" onclick="mk('withdraw')">Tuma ombi la withdraw</button></div>
 <h3 style="margin:14px 0 8px">Historia</h3>${L.map(x=>`<div class="card rw"><div><b>${ic[x.type]}</b><div class="mu">${esc(x.method)} · ${dt(x.created_at)}</div></div><div style="text-align:right"><b>${tsh(x.amount)}</b><div class="${cl[x.status]}" style="font-size:13px">${lb[x.status]}</div></div></div>`).join('')||'<p class="mu">Hakuna miamala bado.</p>'}`}
+async function dep(){const a=+V('da'),p=V('dp').trim();if(!(a>=500)||!p)return toast('Weka kiasi (angalau 500) na namba ya simu');
+const b=$('#db');b.disabled=true;toast('Inatuma ombi...');
+const{data,error}=await sb.functions.invoke('abliner-deposit-',{body:{amount:a,phone:p}});
+if(error||data?.error){let m=data?.error;if(!m&&error?.context)try{m=(await error.context.json()).error}catch(e){}b.disabled=false;return toast(m||'Imeshindikana, jaribu tena')}
+toast(data.message||'Angalia simu yako na uthibitishe');await load();
+for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,5000));await sb.functions.invoke('abliner-webhook');await load();if(!D.tx.some(x=>x.type=='deposit'&&x.method=='Abliner'&&x.status=='pending'))break}}
 function mk(type){const d=type=='deposit',a=+V(d?'da':'wa'),r=V(d?'dr':'wr').trim(),m=V(d?'dm':'wm');if(!(a>0)||!r)return toast('Jaza kiasi na namba');
 d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa')}
 /* INVITE, TOP, PROFILE, NOTIF */
