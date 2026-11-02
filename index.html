@@ -2,6 +2,14 @@
 <html lang="sw"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>eArena TZ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#120f24">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="eArena">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#120f24;--s:#1c1838;--s2:#2a2450;--tx:#f2effc;--mu:#a29cc4;--g:#3be38e;--v:#8b5cf6;--r:#ff5d73;--y:#ffc94a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -32,7 +40,7 @@ nav button{flex:1;background:none;border:0;color:var(--mu);font:12px Figtree,san
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head><body>
-<header><div class="logo" id="logo">e<i>Arena</i> TZ</div><div id="chip" class="rw" style="gap:10px"></div></header>
+<header><div class="logo" id="logo"><img src="icon-192.png" alt="" width="30" height="30" style="vertical-align:middle;border-radius:8px;margin-right:8px">e<i>Arena</i> TZ</div><div id="chip" class="rw" style="gap:10px"></div></header>
 <main id="app"><p class="mu">Inapakia...</p></main><nav id="nav"></nav>
 <script>
 /* ===== WEKA FUNGUO ZAKO HAPA (Supabase > Project Settings > API) ===== */
@@ -101,7 +109,7 @@ let h=`<button class="btn sm gh" onclick="go('tours')">← Rudi</button><div cla
 <div class="rw" style="margin-top:8px"><span>Ada: <b>${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</b></span><span>Zawadi: <b class="g">${tsh(t.prize_pool)}</b></span></div>
 ${t.status=='open'?(inn?'<p class="g">✓ Umejiunga. Subiri admin aanzishe.</p>':`<button class="btn" style="width:100%;margin-top:10px" onclick="join('${t.id}')">Jiunge ${t.entry_fee>0?'· '+tsh(t.entry_fee):''}</button>`):''}
 ${t.status=='done'?`<p class="yl">🏆 Bingwa: <b>${N(t.winner_id)}</b></p>`:''}</div>
-${(()=>{const C=D.codes.find(c=>c.tournament_id==t.id);return C?`<div class="card"><b>🔑 Code za mchezo</b><div style="white-space:pre-wrap;margin-top:6px">${esc(C.code)}</div></div>`:(!inn&&t.status!='done'?`<div class="card mu">🔒 Code za mchezo zitaonekana ${t.entry_fee>0?'baada ya kujiunga na kulipa ada':'baada ya kujiunga na kuweka jina la timu'}.</div>`:'')})()}<div class="card"><b>Wachezaji (${P.length}/${t.max_players})</b><div class="mu">${P.map(i=>N(i)+' <span class="mu">('+nm(i)+')</span>').join(', ')||'Bado hakuna'}</div></div>`;
+${(()=>{const C=D.codes.find(c=>c.tournament_id==t.id);return C&&inn?`<div class="card"><b>🔑 Code za mchezo</b><div style="white-space:pre-wrap;margin-top:6px">${esc(C.code)}</div></div>`:(!inn&&t.status!='done'?`<div class="card mu">🔒 Code za mchezo zitaonekana ${t.entry_fee>0?'baada ya kujiunga na kulipa ada':'baada ya kujiunga na kuweka jina la timu'}.</div>`:'')})()}<div class="card"><b>Wachezaji (${P.length}/${t.max_players})</b><div class="mu">${P.map(i=>N(i)+' <span class="mu">('+nm(i)+')</span>').join(', ')||'Bado hakuna'}</div></div>`;
 const LT=D.lt.filter(r=>r.tournament_id==t.id).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
 if(t.type=='league'&&LT.length)h+=`<div class="card tw"><b>Msimamo</b><table><tr><th>#</th><th>Mchezaji</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>${LT.map((s,i)=>`<tr><td>${i+1}</td><td>${N(s.user_id)}</td><td>${s.played}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td><td>${s.gd}</td><td><b>${s.pts}</b></td></tr>`).join('')}</table></div>`;
 if(M.length)h+=`<div class="card"><b>Mechi</b>${M.map(m=>{const mine=m.player2&&(m.player1==u.id||m.player2==u.id)&&m.status=='pending';
@@ -137,7 +145,7 @@ ${D.rf.map(x=>`<div class="card rw"><span>${esc(x.username)}</span><span class="
 function cp(){try{navigator.clipboard.writeText(link());toast('Imenakiliwa')}catch(e){toast('Bonyeza link kuichagua kisha nakili')}}
 const wa=()=>window.open('https://wa.me/?text='+encodeURIComponent('Jiunge eArena TZ, cheza eFootball ushinde pesa: '+link()));
 const topv=()=>`<h2 style="margin-bottom:12px">Wachezaji bora</h2>${D.lb.map((x,i)=>`<div class="card rw"><span><b>${i+1}.</b> ${esc(x.username)} <span class="tag">${rank(x.xp)}</span></span><span class="mu">${x.xp} XP · ${x.wins} ushindi</span></div>`).join('')}`;
-const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Game ID: ${esc(D.me.game_id)}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
+const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Game ID: ${esc(D.me.game_id)}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn" style="width:100%;margin-bottom:10px" onclick="installApp()">📲 Sakinisha app kwenye simu</button><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
 const notif=()=>`<h2 style="margin-bottom:12px">Taarifa</h2>${D.nt.map(n=>`<div class="card"><div>${esc(n.body)}</div><div class="mu">${dt(n.created_at)}</div></div>`).join('')||'<p class="mu">Hakuna taarifa.</p>'}`;
 /* ADMIN */
 function admin(){const T=[['sum','Muhtasari'],['tx','Miamala'],['tr','Mashindano'],['us','Watumiaji'],['an','Tangazo'],['ad','Ads'],['fq','FAQ'],['st','Mipangilio']];
@@ -199,4 +207,23 @@ const askQ=i=>askAI(D.faq[i].question);
 const fqAdm=()=>`<div class="card"><b>Swali na jibu jipya</b><input id="fq1" placeholder="Swali (mfano: Naweka pesa vipi?)"><input id="fq2" placeholder="Maneno ya kutambua, yatenganishe kwa koma (mfano: deposit,weka pesa)"><textarea id="fq3" rows="4" placeholder="Jibu. Unaweza kutumia {ref_pct} na {min_withdraw}"></textarea><button class="btn" style="width:100%" onclick="saveFaq()">Hifadhi</button></div>`+D.faq.map(f=>`<div class="card"><div class="rw"><b>${esc(f.question)}</b><button class="btn sm rdb" onclick="delFaq('${f.id}')">Futa</button></div><div class="mu">${esc(f.keywords)}</div></div>`).join('');
 async function saveFaq(){const q=V('fq1').trim(),k=V('fq2').trim(),a=V('fq3').trim();if(!q||!k||!a)return toast('Jaza sehemu zote tatu');const{error}=await sb.from('faqs').insert({question:q,keywords:k,answer:a,sort:D.faq.length+1});error?toast(error.message):(toast('Imehifadhiwa'),load())}
 async function delFaq(i){const{error}=await sb.from('faqs').delete().eq('id',i);error?toast(error.message):load()}
+
+/* ===== PWA: sakinisha app kwenye simu ===== */
+let dip=null;
+const isStd=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+function info(h){const m=document.createElement('div');m.className='mod';m.innerHTML=`<div class="card"><div>${h}</div><button class="btn" style="width:100%;margin-top:12px">Sawa</button></div>`;document.body.appendChild(m);m.querySelector('button').onclick=()=>m.remove()}
+function showInst(){if(isStd()||document.getElementById('inst'))return;if(Date.now()-(+lsGet('inst_dismiss')||0)<3*864e5)return;
+const d=document.createElement('div');d.id='inst';d.className='card';d.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;margin:0;display:flex;align-items:center;gap:10px';
+d.innerHTML=`<img src="icon-192.png" alt="" width="44" height="44" style="border-radius:10px"><div style="flex:1"><b>Pakua app ya eArena</b><div class="mu" style="font-size:13px">Ifungue haraka kutoka kwenye simu yako</div></div><button class="btn sm" onclick="installApp()">Sakinisha</button><button class="btn sm gh" aria-label="Funga" onclick="hideInst(true)">✕</button>`;document.body.appendChild(d)}
+function hideInst(dis){const d=document.getElementById('inst');if(d)d.remove();if(dis)lsSet('inst_dismiss',Date.now())}
+async function installApp(){if(isStd())return toast('App tayari imesakinishwa');
+if(dip){dip.prompt();const r=await dip.userChoice;dip=null;hideInst();if(r.outcome=='accepted')toast('Inasakinisha...');return}
+info(isIOS?'<b>iPhone / iPad:</b> fungua kwa <b>Safari</b>, bonyeza kitufe cha <b>Share</b> (⬆) chini, kisha chagua <b>Add to Home Screen</b>.':'Bonyeza menyu ya kivinjari (⋮) juu kulia, kisha chagua <b>Install app</b> au <b>Add to Home screen</b>.')}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;showInst()});
+addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishwa!')});
+if(isIOS&&!isStd())setTimeout(showInst,3000);
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script></body></html>
