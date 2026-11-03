@@ -239,14 +239,13 @@ addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishw
 if(isIOS&&!isStd())setTimeout(showInst,3000);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 /* ===== ADSTERRA BANNER ===== */
-const AD_HTML=`<script>atOptions={'key':'835e8da20eaded3db10f69dd7d1ecc7d','format':'iframe','height':50,'width':320,'params':{}};<\/script><script src="https://bauval.org/22/835e8da20eaded3db10f69dd7d1ecc7d"><\/script>`;
 function adToggle(on){
   const b=document.getElementById('adbar');
   if(!b)return;
   if(!on){b.style.display='none';return}
   b.style.display='block';
   if(!b.firstChild){
-    b.innerHTML='<iframe width="320" height="50" scrolling="no" style="border:0;display:block;margin:0 auto" srcdoc="'+AD_HTML.replace(/"/g,'&quot;')+'"></iframe>';
+    b.innerHTML='<iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;margin:0 auto;max-width:100%"></iframe>';
   }
 }
 </script></body></html>
