@@ -238,6 +238,22 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;showInst()})
 addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishwa!')});
 if(isIOS&&!isStd())setTimeout(showInst,3000);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+/* ===== ARIFA (WEB PUSH) ===== */
+const VAPID_PUBLIC='BLKO9u6j7Wq1h3G37j4c2I_aOqxUtkDiWQ3sZ0e8KLJSkD97mjfAMmnl20n7hk5R9BNzO7nHm6VcRgWgHyFLvo4';
+const b64u=s=>{const r=atob((s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
+async function pushSub(){try{const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
+if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
+const j=sub.toJSON();const{error}=await sb.rpc('save_push',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth});return !error}catch(e){return false}}
+async function enablePush(){if(!('Notification' in window)||!('PushManager' in window))return toast('Kivinjari hiki hakiungi arifa. iPhone: sakinisha app kwanza (Add to Home Screen).');
+const p=await Notification.requestPermission();if(p!='granted')return toast('Arifa zimezuiwa. Ziruhusu kwenye mipangilio ya simu.');
+toast(await pushSub()?'Arifa zimewashwa!':'Imeshindwa kuwasha arifa');pushUI()}
+let pushDone=false;
+function pushUI(){let b=document.getElementById('pushbtn');
+if(!b){b=document.createElement('button');b.id='pushbtn';b.className='btn sm';b.textContent='🔔 Washa arifa';b.style.cssText='position:fixed;right:12px;bottom:84px;z-index:20;box-shadow:0 2px 10px #0008;display:none';b.onclick=enablePush;document.body.appendChild(b)}
+const can=!!(sess&&D.me&&!D.me.is_banned&&!adm&&'Notification' in window&&'PushManager' in window);
+b.style.display=can&&Notification.permission=='default'?'block':'none';
+if(can&&Notification.permission=='granted'&&!pushDone){pushDone=true;pushSub()}}
+const _draw=draw;draw=function(){_draw();pushUI()};
 /* ===== INTERSTITIAL (skip baada ya sekunde 5) ===== */
 let lastAd=0;
 function showAd(next){
