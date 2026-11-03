@@ -146,7 +146,7 @@ if(error||data?.error){let m=data?.error;if(!m&&error?.context)try{m=(await erro
 toast(data.message||'Angalia simu yako na uthibitishe');await load();
 for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,5000));await sb.functions.invoke('abliner-webhook');await load();if(!D.tx.some(x=>x.type=='deposit'&&x.method=='Abliner'&&x.status=='pending'))break}}
 function mk(type){const d=type=='deposit',a=+V(d?'da':'wa'),r=V(d?'dr':'wr').trim(),m=V(d?'dm':'wm');if(!(a>0)||!r)return toast('Jaza kiasi na namba');
-d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa')}
+d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa').then(ok=>{if(ok)setTimeout(()=>showAd(),900)})}
 /* INVITE, TOP, PROFILE, NOTIF */
 const link=()=>location.origin+location.pathname+'?ref='+D.me.referral_code;
 function invite(){const B=D.tx.filter(x=>x.user_id==D.me.id&&x.type=='bonus'&&x.status=='approved').reduce((s,x)=>s+x.amount,0);
@@ -238,12 +238,36 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;showInst()})
 addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishwa!')});
 if(isIOS&&!isStd())setTimeout(showInst,3000);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+/* ===== INTERSTITIAL (skip baada ya sekunde 5) ===== */
+let lastAd=0;
+function showAd(next){
+  const n=Date.now();
+  if(n-lastAd<90000||document.getElementById('advid')||!sess){if(next)next();return}
+  lastAd=n;
+  const m=document.createElement('div');m.id='advid';m.className='mod';m.style.cssText='flex-direction:column;z-index:80;background:#000d';
+  m.innerHTML='<div class="mu" style="margin-bottom:10px">Tangazo</div><div class="card" style="padding:10px;margin:0;width:auto"><iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;max-width:100%"></iframe></div><button class="btn gh" id="adsk" disabled style="margin-top:36px">Ruka baada ya 5</button>';
+  document.body.appendChild(m);
+  let c=5;const t=setInterval(()=>{c--;const b=document.getElementById('adsk');if(!b){clearInterval(t);return}
+    if(c>0)b.textContent='Ruka baada ya '+c;
+    else{clearInterval(t);b.disabled=false;b.textContent='Ruka ✕';b.onclick=()=>{m.remove();if(next)next()}}},1000)
+}
+const _go=go;go=function(v,a){const from=view;_go(v,a);if(v=='home'&&from!='home'&&sess&&D.me)showAd()};
+/* ===== POPUNDER (inapakiwa mara moja, haimhusu admin) ===== */
+let popOn=false;
+function loadPop(){
+  if(popOn||!sess||!D.me||D.me.role=='admin')return;
+  popOn=true;
+  const s=document.createElement('script');
+  s.src='https://abscloud.org/1/7c9c74964b47db01428e6e14dc5ff041';
+  s.setAttribute('data-cfasync','false');
+  document.body.appendChild(s);
+}
 /* ===== ADSTERRA BANNER ===== */
 function adToggle(on){
   const b=document.getElementById('adbar');
   if(!b)return;
   if(!on){b.style.display='none';return}
-  b.style.display='block';
+  b.style.display='block';loadPop();
   if(!b.firstChild){
     b.innerHTML='<iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;margin:0 auto;max-width:100%"></iframe>';
   }
