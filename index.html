@@ -78,8 +78,8 @@ async function loadChat(){const{data}=await chatQ();D.chat=(data||[]).reverse();
 async function load(){
 if(!sess){D={};if(ch){sb.removeChannel(ch);ch=null}return draw()}
 const q=t=>sb.from(t).select('*'),o={ascending:false};
-const [p,t,tp,m,lb,lt,tx,n,s,rf,an,ad,cd,ct,fq]=await Promise.all([q('profiles').eq('id',sess.user.id).single(),q('tournaments').order('created_at',o),q('tournament_players'),q('matches').order('created_at'),q('leaderboard').order('xp',o),q('league_table'),q('transactions').order('created_at',o),q('notifications').order('created_at',o),q('settings').single(),sb.rpc('my_referrals'),q('announcements').order('created_at',o).limit(20),q('ads').order('sort').order('created_at',o),q('tournament_codes'),chatQ(),q('faqs').order('sort')]);
-D={me:p.data,tours:t.data||[],tp:tp.data||[],ms:m.data||[],lb:lb.data||[],lt:lt.data||[],tx:tx.data||[],nt:n.data||[],set:s.data||{},rf:rf.data||[],an:an.data||[],ad:ad.data||[],codes:cd.data||[],chat:(ct.data||[]).reverse(),faq:fq.data||[]};
+const [p,t,tp,m,lb,lt,tx,n,s,rf,an,ad,cd,ct,fq,ti]=await Promise.all([q('profiles').eq('id',sess.user.id).single(),q('tournaments').order('created_at',o),q('tournament_players'),q('matches').order('created_at'),q('leaderboard').order('xp',o),q('league_table'),q('transactions').order('created_at',o),q('notifications').order('created_at',o),q('settings').single(),sb.rpc('my_referrals'),q('announcements').order('created_at',o).limit(20),q('ads').order('sort').order('created_at',o),q('tournament_codes'),chatQ(),q('faqs').order('sort'),q('top_inviters').order('total',o).order('first_at')]);
+D={me:p.data,tours:t.data||[],tp:tp.data||[],ms:m.data||[],lb:lb.data||[],lt:lt.data||[],tx:tx.data||[],nt:n.data||[],set:s.data||{},rf:rf.data||[],an:an.data||[],ad:ad.data||[],codes:cd.data||[],chat:(ct.data||[]).reverse(),faq:fq.data||[],inv:ti.data||[]};
 if(D.me?.role=='admin'){D.users=(await q('profiles').order('created_at',o)).data||[]}
 sub();draw()}
 function go(v,a){view=v;arg=a;adm=false;if(v=='notif'&&D.nt.some(n=>!n.is_read))sb.from('notifications').update({is_read:true}).eq('user_id',sess.user.id).then(()=>{});draw();scrollTo(0,0)}
@@ -115,7 +115,7 @@ return `<div class="card hero"><div>Salio lako</div><div class="big">${tsh(u.bal
 ${annH()}${adsH()}<h3 style="margin:16px 0 10px">Yanayoendelea sasa</h3>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano kwa sasa.</p>'}
 <button class="btn gh" style="width:100%" onclick="go('top')">Angalia wachezaji bora</button>`}
 function tours(){const L=D.tours.filter(t=>flt=='all'||(flt=='free'?!(t.entry_fee>0):t.entry_fee>0));
-return `<h2 style="margin-bottom:12px">Mashindano</h2><div class="chips">${[['all','Zote'],['free','Bure'],['paid','Kulipia']].map(f=>`<button class="btn sm ${flt==f[0]?'':'gh'}" onclick="flt='${f[0]}';draw()">${f[1]}</button>`).join('')}</div>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano yanayolingana.</p>'}`}
+return `<h2 style="margin-bottom:12px">Mashindano</h2><div class="chips">${[['all','Zote'],['free','Bure'],['paid','Kulipia']].map(f=>`<button class="btn sm ${flt==f[0]?'':'gh'}" onclick="flt='${f[0]}';draw()">${f[1]}</button>`).join('')}</div>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano yanayolingana.</p>'}${invH()}`}
 function tview(){const t=D.tours.find(x=>x.id==arg);if(!t)return '<p class="mu">Haipatikani</p>';const u=D.me,P=D.tp.filter(p=>p.tournament_id==t.id).map(p=>p.user_id),inn=P.includes(u.id),M=D.ms.filter(m=>m.tournament_id==t.id);const N=i=>{if(!i)return 'BYE';const x=D.tp.find(p=>p.tournament_id==t.id&&p.user_id==i);return x?.team_name?esc(x.team_name):N(i)};
 let h=`<button class="btn sm gh" onclick="go('tours')">← Rudi</button><div class="card" style="margin-top:12px">${t.image_url?`<img src="${esc(t.image_url)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:8px">`:''}<h2>${esc(t.title)}</h2>${t.play_at?`<div class="yl">${pt(t)}</div>`:''}<div class="mu">${t.type=='league'?'Ligi (kila mchezaji anakutana na wote)':'Knockout (ukifungwa umetoka)'}</div>
 <div class="rw" style="margin-top:8px"><span>Ada: <b>${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</b></span><span>Zawadi: <b class="g">${tsh(t.prize_pool)}</b></span></div>
@@ -128,7 +128,7 @@ if(M.length)h+=`<div class="card"><b>Mechi</b>${M.map(m=>{const mine=m.player2&&
 return `<div style="padding:9px 0;border-bottom:1px solid var(--s2)"><div class="rw"><span>${t.type=='ko'?'R'+m.round+' · ':''}${N(m.player1)} vs ${N(m.player2)}</span><b>${m.status=='done'?(m.player2?m.score1+' - '+m.score2:'Amepita'):'—'}</b></div>
 ${m.status=='reported'?'<div class="mu">Matokeo yametumwa, yanasubiri admin.</div>':''}${m.status=='disputed'?'<div class="rd">Lalamiko linashughulikiwa na admin.</div>':''}
 ${mine?`<div class="mu" style="margin:6px 0">Cheza kisha tuma matokeo (yako kwanza):</div><input id="ra${m.id}" class="sc" type="number" min="0"> - <input id="rb${m.id}" class="sc" type="number" min="0"> <button class="btn sm" onclick="rep('${m.id}')">Tuma</button> <button class="btn sm rdb" onclick="rpc('dispute_match',{p_match:'${m.id}'},'Lalamiko limetumwa')">Lalamika</button>`:''}</div>`}).join('')}</div>`;
-return h}
+return h+invH()}
 const join=i=>{const t=D.tours.find(x=>x.id==i);ask(t.entry_fee>0?'Jina la timu yako (ada '+tsh(t.entry_fee)+' itakatwa kwenye wallet)':'Jina la timu yako',  '',v=>{v=v.trim();if(!v)return toast('Weka jina la timu');rpc('join_tournament',{p_id:i,p_team:v},'Umejiunga!')})};
 function rep(i){const a=V('ra'+i),b=V('rb'+i);if(a===''||b==='')return toast('Weka matokeo yote mawili');rpc('report_match',{p_match:i,p_mine:+a,p_opp:+b},'Matokeo yametumwa')}
 /* WALLET */
@@ -239,7 +239,7 @@ addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishw
 if(isIOS&&!isStd())setTimeout(showInst,3000);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 /* ===== ARIFA (WEB PUSH) ===== */
-const VAPID_PUBLIC='BLKO9u6j7Wq1h3G37j4c2I_aOqxUtkDiWQ3sZ0e8KLJSkD97mjfAMmnl20n7hk5R9BNzO7nHm6VcRgWgHyFLvo4';
+const VAPID_PUBLIC='BHmJflo7ZbzaXFssTLPKeG_ug3YPeFOjvSm00dNycImn8Ac2_RF8blmhUN0zPWMJ-dQ4HZKxusuRrmMoUuNU9_I';
 const b64u=s=>{const r=atob((s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
 async function pushSub(){try{const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
 if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
@@ -288,4 +288,9 @@ function adToggle(on){
     b.innerHTML='<iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;margin:0 auto;max-width:100%"></iframe>';
   }
 }
+
+/* ===== MWALIKAJI BORA (top 10) ===== */
+const invH=()=>{const L=D.inv||[],med=['🥇','🥈','🥉'];
+return `<div class="card"><div class="rw"><b>🎁 Mwalikaji Bora</b><span class="tag">Top 10</span></div><div class="mu" style="margin:4px 0 8px">Anayealika wachezaji wengi waliojiunga na mashindano anapata TSh 1,000, hata asiposhinda. Alika kupitia tab ya Alika.</div>`
++(L.length?L.map((x,i)=>`<div class="rw" style="padding:7px 0;border-top:1px solid var(--s2)"><span>${med[i]||'<b>'+(i+1)+'.</b>'} ${esc(x.username)}${D.me&&x.id==D.me.id?' <span class="tag g">wewe</span>':''}</span><b class="g">${x.total}</b></div>`).join(''):'<p class="mu">Bado hakuna aliyealika. Kuwa wa kwanza!</p>')+`</div>`};
 </script></body></html>
