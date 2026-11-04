@@ -145,7 +145,12 @@ const{data,error}=await sb.functions.invoke('abliner-deposit-',{body:{amount:a,p
 if(error||data?.error){let m=data?.error;if(!m&&error?.context)try{m=(await error.context.json()).error}catch(e){}b.disabled=false;return toast(m||'Imeshindikana, jaribu tena')}
 toast(data.message||'Angalia simu yako na uthibitishe');await load();
 for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,5000));await sb.functions.invoke('abliner-webhook');await load();if(!D.tx.some(x=>x.type=='deposit'&&x.method=='Abliner'&&x.status=='pending'))break}}
+const AUTO_MAX=100000;
+async function wd(a,p){toast('Inatuma ombi...');const{data,error}=await sb.functions.invoke('abliner-withdraw',{body:{amount:a,phone:p}});if(error||data?.error){let m=data?.error;if(!m&&error?.context)try{m=(await error.context.json()).error}catch(e){}await load();return toast(m||'Imeshindikana, jaribu tena')}
+toast(data.message||'Ombi limetumwa');await load();
+for(let i=0;i<12;i++){await new Promise(r=>setTimeout(r,5000));await sb.functions.invoke('abliner-webhook');await load();if(!D.tx.some(x=>x.type=='withdraw'&&x.method=='Abliner'&&x.status=='pending'))break}}
 function mk(type){const d=type=='deposit',a=+V(d?'da':'wa'),r=V(d?'dr':'wr').trim(),m=V(d?'dm':'wm');if(!(a>0)||!r)return toast('Jaza kiasi na namba');
+if(!d&&a<=AUTO_MAX)return wd(a,r);
 d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa').then(ok=>{if(ok)setTimeout(()=>showAd(),900)})}
 /* INVITE, TOP, PROFILE, NOTIF */
 const link=()=>location.origin+location.pathname+'?ref='+D.me.referral_code;
