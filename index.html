@@ -97,17 +97,25 @@ const T=[['home','🏠','Nyumbani'],['tours','🏆','Mashindano'],['kodi','🎯'
 $('#nav').innerHTML=T.map(t=>`<button class="${view==t[0]||(view=='t'&&t[0]=='tours')?'on':''}" onclick="go('${t[0]}')"><b>${t[1]}</b>${t[2]}</button>`).join('');
 if(view=='chat'&&$('#msgs')){updMsgs();return}A.innerHTML=({home,tours,t:tview,wallet,invite,me:prof,top:topv,notif,chat:chatv,kodi:kodiv})[view]();if(view=='chat'){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}}
 /* AUTH */
+/* Usajili: namba ya simu + nywila. Akaunti za zamani za email zinaingia kwa email zao. */
+const PHONE_DOMAIN='phone.earenatz.online';
+const tzPhone=v=>{let d=String(v).replace(/\D/g,'');if(d.startsWith('255')&&d.length==12){}else if(d.startsWith('0')&&d.length==10)d='255'+d.slice(1);else if(d.length==9)d='255'+d;else return null;return /^255[67]\d{8}$/.test(d)?d:null};
+const phoneEmail=d=>d+'@'+PHONE_DOMAIN;
+const loginId=v=>{v=String(v).trim();if(v.includes('@'))return v.toLowerCase();const d=tzPhone(v);return d?phoneEmail(d):null};
 function auth(){const r=amode=='reg';return `<div class="card hero"><h1>${r?'Fungua akaunti':'Karibu tena'}</h1><div>Ligi na mashindano ya eFootball. Cheza, shinda, toa pesa.</div></div>
-<div class="card"><label>Email</label><input id="em" type="email" autocomplete="email">
-${r?`<label>Jina la mtumiaji</label><input id="rn"><label>eFootball Game ID</label><input id="rg"><label>Namba ya simu</label><input id="rph" inputmode="tel">`:''}
-<label>Nywila</label><input id="pw" type="password">${r?`<label>Referral code (si lazima)</label><input id="rr" value="${esc(refc)}">`:''}
+<div class="card"><label>${r?'Namba ya simu':'Namba ya simu au email'}</label><input id="em" inputmode="${r?'tel':'text'}" autocomplete="username" placeholder="${r?'Mfano: 0712345678':'0712345678 au email yako'}">
+<label>Nywila</label><input id="pw" type="password" autocomplete="${r?'new-password':'current-password'}">${r?`<label>Referral code (si lazima)</label><input id="rr" value="${esc(refc)}">`:''}
 <button class="btn" style="width:100%;margin-top:8px" onclick="${r?'reg()':'login()'}">${r?'Jisajili':'Ingia'}</button>
 <p class="mu" style="text-align:center;cursor:pointer" onclick="amode='${r?'login':'reg'}';draw()">${r?'Una akaunti? Ingia':'Huna akaunti? Jisajili'}</p></div>`}
-async function reg(){const email=V('em').trim(),password=V('pw'),username=V('rn').trim(),game_id=V('rg').trim();
-if(!email||!username||!game_id||password.length<6)return toast('Jaza taarifa zote (nywila angalau herufi 6)');
-const{data,error}=await sb.auth.signUp({email,password,options:{data:{username,game_id,phone:V('rph').trim(),ref:V('rr').trim()}}});
-if(error)return toast(error.message);if(!data.session)toast('Angalia email yako kuthibitisha akaunti')}
-async function login(){const{error}=await sb.auth.signInWithPassword({email:V('em').trim(),password:V('pw')});if(error)toast('Email au nywila si sahihi')}
+async function reg(){const d=tzPhone(V('em')),password=V('pw');
+if(!d)return toast('Weka namba sahihi ya simu, mfano 0712345678');
+if(password.length<6)return toast('Nywila iwe angalau herufi 6');
+const username='Mchezaji'+d.slice(-4)+Math.random().toString(36).slice(2,4);
+const{data,error}=await sb.auth.signUp({email:phoneEmail(d),password,options:{data:{username,game_id:d,phone:d,ref:V('rr').trim()}}});
+if(error)return toast(/registered|exists/i.test(error.message)?'Namba hii tayari imesajiliwa. Ingia.':error.message);
+if(!data.session)toast('Akaunti imeundwa. Jaribu kuingia.')}
+async function login(){const id=loginId(V('em'));if(!id)return toast('Weka namba sahihi ya simu au email');
+const{error}=await sb.auth.signInWithPassword({email:id,password:V('pw')});if(error)toast('Namba/email au nywila si sahihi')}
 const logout=()=>{view='home';sb.auth.signOut()};
 /* HOME & TOURNAMENTS */
 const pc=t=>D.tp.filter(p=>p.tournament_id==t.id).length;
@@ -159,7 +167,7 @@ ${D.rf.map(x=>`<div class="card rw"><span>${esc(x.username)}</span><span class="
 function cp(){try{navigator.clipboard.writeText(link());toast('Imenakiliwa')}catch(e){toast('Bonyeza link kuichagua kisha nakili')}}
 const wa=()=>window.open('https://wa.me/?text='+encodeURIComponent('Jiunge eArena TZ, cheza eFootball ushinde pesa: '+link()));
 const topv=()=>`<h2 style="margin-bottom:12px">Wachezaji bora</h2>${D.lb.map((x,i)=>`<div class="card rw"><span><b>${i+1}.</b> ${esc(x.username)} <span class="tag">${rank(x.xp)}</span></span><span class="mu">${x.xp} XP · ${x.wins} ushindi</span></div>`).join('')}`;
-const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Game ID: ${esc(D.me.game_id)}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn" style="width:100%;margin-bottom:10px" onclick="installApp()">📲 Sakinisha app kwenye simu</button><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
+const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Simu: ${esc(D.me.phone||D.me.game_id)}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn" style="width:100%;margin-bottom:10px" onclick="installApp()">📲 Sakinisha app kwenye simu</button><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
 const notif=()=>`<h2 style="margin-bottom:12px">Taarifa</h2>${D.nt.map(n=>`<div class="card"><div>${esc(n.body)}</div><div class="mu">${dt(n.created_at)}</div></div>`).join('')||'<p class="mu">Hakuna taarifa.</p>'}`;
 /* ADMIN */
 function admin(){const T=[['sum','Muhtasari'],['tx','Miamala'],['tr','Mashindano'],['us','Watumiaji'],['an','Tangazo'],['ad','Ads'],['fq','FAQ'],['kd','Kodi'],['st','Mipangilio']];
