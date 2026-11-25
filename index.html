@@ -48,12 +48,12 @@ nav button{flex:1;background:none;border:0;color:var(--mu);font:12px Figtree,san
 .mod{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}.mod .card{width:100%;max-width:340px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:99px;z-index:60;font-size:14px;max-width:90%}
 .sc{width:54px!important;display:inline-block;text-align:center}
+footer.sf{max-width:560px;margin:0 auto;padding:8px 16px 24px;text-align:center;color:var(--mu);font-size:13px}footer.sf a{color:var(--mu);margin:0 6px;white-space:nowrap}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head><body>
 <header><div class="logo" id="logo"><img src="icon-192.png" alt="" width="30" height="30" style="vertical-align:middle;border-radius:8px;margin-right:8px">e<i>Arena</i> TZ</div><div id="chip" class="rw" style="gap:10px"></div></header>
-<div id="adbar" style="display:none;max-width:560px;margin:0 auto;padding:10px 16px 0"></div>
-<main id="app"><p class="mu">Inapakia...</p><noscript><h1>eArena TZ</h1><p>Ligi na mashindano ya eFootball Tanzania. Jisajili, jiunge na mashindano, shinda zawadi na alika marafiki upate bonus ya 10%. Tafadhali washa JavaScript kutumia app hii.</p></noscript></main><nav id="nav"></nav>
+<main id="app"><p class="mu">Inapakia...</p><noscript><h1>eArena TZ</h1><p>Ligi na mashindano ya eFootball Tanzania. Jisajili, jiunge na mashindano, shinda zawadi na alika marafiki upate bonus ya 10%. Tafadhali washa JavaScript kutumia app hii.</p></noscript></main><footer class="sf"><a href="about.html">Kuhusu Sisi</a><a href="contact.html">Mawasiliano</a><a href="privacy.html">Sera ya Faragha</a><a href="terms.html">Sheria na Masharti</a><div style="margin-top:6px">© 2026 eArena TZ</div></footer><nav id="nav"></nav>
 <script>
 /* ===== WEKA FUNGUO ZAKO HAPA (Supabase > Project Settings > API) ===== */
 const SUPABASE_URL='https://ttwivplvoevhhcsxkdfu.supabase.co';
@@ -67,6 +67,7 @@ const rank=x=>x<100?'Bronze':x<300?'Silver':x<600?'Gold':'Legend';
 const dt=t=>new Date(t).toLocaleDateString('sw-TZ',{day:'numeric',month:'short'});
 const nm=i=>i?esc(D.lb?.find(u=>u.id==i)?.username||D.users?.find(u=>u.id==i)?.username||'?'):'BYE';
 let D={},sess=null,view='home',arg=null,adm=false,atab='sum',flt='all',ch=null;
+let startView=location.hash=='#kodi'?'kodi':null;
 const refc=(new URLSearchParams(location.search).get('ref')||'').toUpperCase();let amode=refc?'reg':'login';
 function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),Math.max(2600,t.length*90))}
 function ask(title,def,cb){const m=document.createElement('div');m.className='mod';m.innerHTML=`<div class="card"><b>${title}</b><input id="mi" value="${esc(def)}"><div class="rw"><button class="btn gh" id="mx">Ghairi</button><button class="btn" id="mo">Sawa</button></div></div>`;document.body.appendChild(m);$('#mi').focus();$('#mx').onclick=()=>m.remove();$('#mo').onclick=()=>{const v=$('#mi').value;m.remove();cb(v)}}
@@ -78,53 +79,48 @@ async function loadChat(){const{data}=await chatQ();D.chat=(data||[]).reverse();
 async function load(){
 if(!sess){D={};if(ch){sb.removeChannel(ch);ch=null}return draw()}
 const q=t=>sb.from(t).select('*'),o={ascending:false};
-const [p,t,tp,m,lb,lt,tx,n,s,rf,an,ad,cd,ct,fq,ti]=await Promise.all([q('profiles').eq('id',sess.user.id).single(),q('tournaments').order('created_at',o),q('tournament_players'),q('matches').order('created_at'),q('leaderboard').order('xp',o),q('league_table'),q('transactions').order('created_at',o),q('notifications').order('created_at',o),q('settings').single(),sb.rpc('my_referrals'),q('announcements').order('created_at',o).limit(20),q('ads').order('sort').order('created_at',o),q('tournament_codes'),chatQ(),q('faqs').order('sort'),q('top_inviters').order('total',o).order('first_at')]);
-D={me:p.data,tours:t.data||[],tp:tp.data||[],ms:m.data||[],lb:lb.data||[],lt:lt.data||[],tx:tx.data||[],nt:n.data||[],set:s.data||{},rf:rf.data||[],an:an.data||[],ad:ad.data||[],codes:cd.data||[],chat:(ct.data||[]).reverse(),faq:fq.data||[],inv:ti.data||[]};
-if(D.me?.role=='admin'){D.users=(await q('profiles').order('created_at',o)).data||[];D.fin=(await q('finance_entries').order('created_at',o)).data||[]}
+const [p,t,tp,m,lb,lt,tx,n,s,rf,an,ad,cd,ct,fq,kpl,kss,ktp,kbl]=await Promise.all([q('profiles').eq('id',sess.user.id).single(),q('tournaments').order('created_at',o),q('tournament_players'),q('matches').order('created_at'),q('leaderboard').order('xp',o),q('league_table'),q('transactions').order('created_at',o),q('notifications').order('created_at',o),q('settings').single(),sb.rpc('my_referrals'),q('announcements').order('created_at',o).limit(20),q('ads').order('sort').order('created_at',o),q('tournament_codes'),chatQ(),q('faqs').order('sort'),q('tip_plans').order('sort'),q('tip_subs').eq('user_id',sess.user.id).order('ends_at',o),sb.rpc('get_tips'),q('betting_links').order('sort')]);
+D={me:p.data,tours:t.data||[],tp:tp.data||[],ms:m.data||[],lb:lb.data||[],lt:lt.data||[],tx:tx.data||[],nt:n.data||[],set:s.data||{},rf:rf.data||[],an:an.data||[],ad:ad.data||[],codes:cd.data||[],chat:(ct.data||[]).reverse(),faq:fq.data||[],plans:kpl.data||[],subs:kss.data||[],tips:ktp.data||[],bl:kbl.data||[]};
+if(D.me?.role=='admin'){D.users=(await q('profiles').order('created_at',o)).data||[]}
+if(startView&&D.me){view=startView;startView=null}
 sub();draw()}
-function go(v,a){view=v;arg=a;adm=false;if(v=='notif'&&D.nt.some(n=>!n.is_read))sb.from('notifications').update({is_read:true}).eq('user_id',sess.user.id).then(()=>{});draw();scrollTo(0,0)}
+function go(v,a){view=v;arg=a;adm=false;if(v=='notif'&&D.nt.some(n=>!n.is_read))sb.from('notifications').update({is_read:true}).eq('user_id',sess.user.id).then(()=>{});draw();scrollTo(0,0);try{history.replaceState(null,'',v=='kodi'?'#kodi':location.pathname+location.search)}catch(e){}}
 let taps=[];$('#logo').onclick=()=>{const n=Date.now();taps=taps.filter(t=>n-t<3000);taps.push(n);if(taps.length>=5){taps=[];if(D.me?.role=='admin'){adm=true;draw()}else toast('Huna ruhusa ya admin')}}
-function draw(){const A=$('#app');adToggle(!!(sess&&D.me&&!D.me.is_banned&&!adm&&(view=='home'||view=='tours')));
+function draw(){const A=$('#app');
 if(!sess){A.innerHTML=auth();$('#nav').innerHTML='';$('#chip').innerHTML='';return}
 if(!D.me){A.innerHTML='<p class="mu">Inapakia...</p>';return}
 if(D.me.is_banned){A.innerHTML='<div class="card"><h2>Akaunti imezuiwa</h2><p>Wasiliana na admin.</p><button class="btn" onclick="logout()">Toka</button></div>';return}
 if(adm){A.innerHTML=admin();$('#nav').innerHTML='';$('#chip').innerHTML='<button class="btn sm gh" onclick="adm=false;draw()">Toka Admin</button>';return}
 const u=D.me,nc=D.nt.filter(n=>!n.is_read).length;
 $('#chip').innerHTML=`<span class="tag g">${tsh(u.balance)}</span><button class="btn sm gh" onclick="go('chat')">💬</button><button class="btn sm gh" onclick="go('notif')">🔔 ${nc}</button>`;
-const T=[['home','🏠','Nyumbani'],['tours','🏆','Mashindano'],['wallet','💳','Wallet'],['invite','🎁','Alika'],['me','👤','Wasifu']];
+const T=[['home','🏠','Nyumbani'],['tours','🏆','Mashindano'],['kodi','🎯','Kodi'],['wallet','💳','Wallet'],['invite','🎁','Alika'],['me','👤','Wasifu']];
 $('#nav').innerHTML=T.map(t=>`<button class="${view==t[0]||(view=='t'&&t[0]=='tours')?'on':''}" onclick="go('${t[0]}')"><b>${t[1]}</b>${t[2]}</button>`).join('');
-if(view=='chat'&&$('#msgs')){updMsgs();return}A.innerHTML=({home,tours,t:tview,wallet,invite,me:prof,top:topv,notif,chat:chatv})[view]();if(view=='chat'){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}}
+if(view=='chat'&&$('#msgs')){updMsgs();return}A.innerHTML=({home,tours,t:tview,wallet,invite,me:prof,top:topv,notif,chat:chatv,kodi:kodiv})[view]();if(view=='chat'){const e=$('#msgs');if(e)e.scrollTop=e.scrollHeight}}
 /* AUTH */
 function auth(){const r=amode=='reg';return `<div class="card hero"><h1>${r?'Fungua akaunti':'Karibu tena'}</h1><div>Ligi na mashindano ya eFootball. Cheza, shinda, toa pesa.</div></div>
-<div class="card">${r?`<p class="mu" style="margin:0 0 8px">🔒 Hatuombi email, Konami ID wala nywila ya eFootball. Usimpe mtu yeyote taarifa za akaunti yako ya eFootball.</p><label>Jina la mtumiaji</label><input id="rn" autocomplete="username"><label>Namba ya simu</label><input id="rph" inputmode="tel" autocomplete="tel" placeholder="0712345678">`:`<label>Namba ya simu (au email kwa akaunti za zamani)</label><input id="em" autocomplete="username" placeholder="0712345678">`}
-<label>Nywila</label><input id="pw" type="password" autocomplete="${r?'new-password':'current-password'}">${r?`<label>Referral code (si lazima)</label><input id="rr" value="${esc(refc)}">`:''}
+<div class="card"><label>Email</label><input id="em" type="email" autocomplete="email">
+${r?`<label>Jina la mtumiaji</label><input id="rn"><label>eFootball Game ID</label><input id="rg"><label>Namba ya simu</label><input id="rph" inputmode="tel">`:''}
+<label>Nywila</label><input id="pw" type="password">${r?`<label>Referral code (si lazima)</label><input id="rr" value="${esc(refc)}">`:''}
 <button class="btn" style="width:100%;margin-top:8px" onclick="${r?'reg()':'login()'}">${r?'Jisajili':'Ingia'}</button>
 <p class="mu" style="text-align:center;cursor:pointer" onclick="amode='${r?'login':'reg'}';draw()">${r?'Una akaunti? Ingia':'Huna akaunti? Jisajili'}</p></div>`}
-const normPhone=v=>{const m=String(v||'').replace(/[\s+\-()]/g,'').match(/^(?:255|0)?([67]\d{8})$/);return m?'255'+m[1]:null};
-const phoneEmail=p=>p+'@phone.earenatz.online';
-async function reg(){const username=V('rn').trim(),password=V('pw'),ph=normPhone(V('rph'));
-if(username.length<3)return toast('Weka jina la mtumiaji (angalau herufi 3)');
-if(!ph)return toast('Namba ya simu si sahihi. Mfano: 0712345678');
-if(password.length<6)return toast('Nywila iwe na herufi 6 au zaidi');
-const{data,error}=await sb.auth.signUp({email:phoneEmail(ph),password,options:{data:{username,phone:ph,ref:V('rr').trim()}}});
-if(error)return toast(/registered|already/i.test(error.message)?'Namba hii imeshasajiliwa. Ingia badala yake.':/database error/i.test(error.message)?'Jina hilo la mtumiaji limeshatumika, chagua lingine.':error.message);
-if(!data.session)toast('Akaunti imetengenezwa. Jaribu kuingia.')}
-async function login(){const v=V('em').trim(),ph=normPhone(v),email=v.includes('@')?v:(ph?phoneEmail(ph):null);
-if(!email)return toast('Weka namba ya simu sahihi (mfano 0712345678) au email yako ya zamani');
-const{error}=await sb.auth.signInWithPassword({email,password:V('pw')});if(error)toast('Namba/email au nywila si sahihi')}
+async function reg(){const email=V('em').trim(),password=V('pw'),username=V('rn').trim(),game_id=V('rg').trim();
+if(!email||!username||!game_id||password.length<6)return toast('Jaza taarifa zote (nywila angalau herufi 6)');
+const{data,error}=await sb.auth.signUp({email,password,options:{data:{username,game_id,phone:V('rph').trim(),ref:V('rr').trim()}}});
+if(error)return toast(error.message);if(!data.session)toast('Angalia email yako kuthibitisha akaunti')}
+async function login(){const{error}=await sb.auth.signInWithPassword({email:V('em').trim(),password:V('pw')});if(error)toast('Email au nywila si sahihi')}
 const logout=()=>{view='home';sb.auth.signOut()};
 /* HOME & TOURNAMENTS */
 const pc=t=>D.tp.filter(p=>p.tournament_id==t.id).length;
-function tcard(t){return `<div class="card tap" tabindex="0" onclick="go('t','${t.id}')">${t.image_url?`<img src="${esc(t.image_url)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:8px">`:''}<div class="rw"><b>${esc(t.title)}</b><span class="tag ${t.status}">${{open:'Wazi',live:'Inaendelea',done:'Imeisha'}[t.status]}</span></div><div class="mu">${t.type=='league'?'Ligi':'Knockout'} · Ada ${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</div>${t.sponsor_name?`<div class="mu" style="font-size:13px">🤝 Udhamini: ${esc(t.sponsor_name)}</div>`:''}${t.play_at?`<div class="yl" style="font-size:14px">${pt(t)}</div>`:''}<div class="rw" style="margin-top:6px"><span>Zawadi <b class="g">${esc(prz(t))}</b></span><span class="mu">${pc(t)}/${t.max_players} wachezaji</span></div></div>`}
+function tcard(t){return `<div class="card tap" tabindex="0" onclick="go('t','${t.id}')">${t.image_url?`<img src="${esc(t.image_url)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:8px">`:''}<div class="rw"><b>${esc(t.title)}</b><span class="tag ${t.status}">${{open:'Wazi',live:'Inaendelea',done:'Imeisha'}[t.status]}</span></div><div class="mu">${t.type=='league'?'Ligi':'Knockout'} · Ada ${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</div>${t.play_at?`<div class="yl" style="font-size:14px">${pt(t)}</div>`:''}<div class="rw" style="margin-top:6px"><span>Zawadi <b class="g">${tsh(t.prize_pool)}</b></span><span class="mu">${pc(t)}/${t.max_players} wachezaji</span></div></div>`}
 function home(){const u=D.me,L=D.tours.filter(t=>t.status!='done').slice(0,3);
 return `<div class="card hero"><div>Salio lako</div><div class="big">${tsh(u.balance)}</div><div class="rw" style="margin-top:10px"><span>Daraja: ${rank(u.xp)} · XP ${u.xp}</span><button class="btn sm" onclick="go('wallet')">Weka pesa</button></div></div>
 ${annH()}${adsH()}<h3 style="margin:16px 0 10px">Yanayoendelea sasa</h3>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano kwa sasa.</p>'}
 <button class="btn gh" style="width:100%" onclick="go('top')">Angalia wachezaji bora</button>`}
 function tours(){const L=D.tours.filter(t=>flt=='all'||(flt=='free'?!(t.entry_fee>0):t.entry_fee>0));
-return `<h2 style="margin-bottom:12px">Mashindano</h2><div class="chips">${[['all','Zote'],['free','Bure'],['paid','Kulipia']].map(f=>`<button class="btn sm ${flt==f[0]?'':'gh'}" onclick="flt='${f[0]}';draw()">${f[1]}</button>`).join('')}</div>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano yanayolingana.</p>'}${invH()}`}
+return `<h2 style="margin-bottom:12px">Mashindano</h2><div class="chips">${[['all','Zote'],['free','Bure'],['paid','Kulipia']].map(f=>`<button class="btn sm ${flt==f[0]?'':'gh'}" onclick="flt='${f[0]}';draw()">${f[1]}</button>`).join('')}</div>${L.map(tcard).join('')||'<p class="mu">Hakuna mashindano yanayolingana.</p>'}`}
 function tview(){const t=D.tours.find(x=>x.id==arg);if(!t)return '<p class="mu">Haipatikani</p>';const u=D.me,P=D.tp.filter(p=>p.tournament_id==t.id).map(p=>p.user_id),inn=P.includes(u.id),M=D.ms.filter(m=>m.tournament_id==t.id);const N=i=>{if(!i)return 'BYE';const x=D.tp.find(p=>p.tournament_id==t.id&&p.user_id==i);return x?.team_name?esc(x.team_name):N(i)};
-let h=`<button class="btn sm gh" onclick="go('tours')">← Rudi</button><div class="card" style="margin-top:12px">${t.image_url?`<img src="${esc(t.image_url)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:8px">`:''}<h2>${esc(t.title)}</h2>${sponsorH(t)}${t.play_at?`<div class="yl">${pt(t)}</div>`:''}<div class="mu">${t.type=='league'?'Ligi (kila mchezaji anakutana na wote)':'Knockout (ukifungwa umetoka)'}</div>
-<div class="rw" style="margin-top:8px"><span>Ada: <b>${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</b></span><span>Zawadi: <b class="g">${esc(prz(t))}</b></span></div>
+let h=`<button class="btn sm gh" onclick="go('tours')">← Rudi</button><div class="card" style="margin-top:12px">${t.image_url?`<img src="${esc(t.image_url)}" alt="" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;margin-bottom:8px">`:''}<h2>${esc(t.title)}</h2>${t.play_at?`<div class="yl">${pt(t)}</div>`:''}<div class="mu">${t.type=='league'?'Ligi (kila mchezaji anakutana na wote)':'Knockout (ukifungwa umetoka)'}</div>
+<div class="rw" style="margin-top:8px"><span>Ada: <b>${t.entry_fee>0?tsh(t.entry_fee):'Bure'}</b></span><span>Zawadi: <b class="g">${tsh(t.prize_pool)}</b></span></div>
 ${t.status=='open'?(inn?'<p class="g">✓ Umejiunga. Subiri admin aanzishe.</p>':`<button class="btn" style="width:100%;margin-top:10px" onclick="join('${t.id}')">Jiunge ${t.entry_fee>0?'· '+tsh(t.entry_fee):''}</button>`):''}
 ${t.status=='done'?`<p class="yl">🏆 Bingwa: <b>${N(t.winner_id)}</b></p>`:''}</div>
 ${(()=>{const C=D.codes.find(c=>c.tournament_id==t.id);return C&&inn?`<div class="card"><b>🔑 Code za mchezo</b><div style="white-space:pre-wrap;margin-top:6px">${esc(C.code)}</div></div>`:(!inn&&t.status!='done'?`<div class="card mu">🔒 Code za mchezo zitaonekana ${t.entry_fee>0?'baada ya kujiunga na kulipa ada':'baada ya kujiunga na kuweka jina la timu'}.</div>`:'')})()}<div class="card"><b>Wachezaji (${P.length}/${t.max_players})</b><div class="mu">${P.map(i=>N(i)+' <span class="mu">('+nm(i)+')</span>').join(', ')||'Bado hakuna'}</div></div>`;
@@ -134,7 +130,7 @@ if(M.length)h+=`<div class="card"><b>Mechi</b>${M.map(m=>{const mine=m.player2&&
 return `<div style="padding:9px 0;border-bottom:1px solid var(--s2)"><div class="rw"><span>${t.type=='ko'?'R'+m.round+' · ':''}${N(m.player1)} vs ${N(m.player2)}</span><b>${m.status=='done'?(m.player2?m.score1+' - '+m.score2:'Amepita'):'—'}</b></div>
 ${m.status=='reported'?'<div class="mu">Matokeo yametumwa, yanasubiri admin.</div>':''}${m.status=='disputed'?'<div class="rd">Lalamiko linashughulikiwa na admin.</div>':''}
 ${mine?`<div class="mu" style="margin:6px 0">Cheza kisha tuma matokeo (yako kwanza):</div><input id="ra${m.id}" class="sc" type="number" min="0"> - <input id="rb${m.id}" class="sc" type="number" min="0"> <button class="btn sm" onclick="rep('${m.id}')">Tuma</button> <button class="btn sm rdb" onclick="rpc('dispute_match',{p_match:'${m.id}'},'Lalamiko limetumwa')">Lalamika</button>`:''}</div>`}).join('')}</div>`;
-return h+invH()}
+return h}
 const join=i=>{const t=D.tours.find(x=>x.id==i);ask(t.entry_fee>0?'Jina la timu yako (ada '+tsh(t.entry_fee)+' itakatwa kwenye wallet)':'Jina la timu yako',  '',v=>{v=v.trim();if(!v)return toast('Weka jina la timu');rpc('join_tournament',{p_id:i,p_team:v},'Umejiunga!')})};
 function rep(i){const a=V('ra'+i),b=V('rb'+i);if(a===''||b==='')return toast('Weka matokeo yote mawili');rpc('report_match',{p_match:i,p_mine:+a,p_opp:+b},'Matokeo yametumwa')}
 /* WALLET */
@@ -142,7 +138,7 @@ function wallet(){const u=D.me,L=D.tx.filter(x=>x.user_id==u.id);
 const ic={deposit:'⬇ Deposit',withdraw:'⬆ Withdraw',bonus:'🎁 Bonus',entry:'🎟 Ada',prize:'🏆 Zawadi',adjust:'⚙ Marekebisho'},cl={pending:'yl',approved:'g',rejected:'rd'},lb={pending:'Inasubiri',approved:'Imekubaliwa',rejected:'Imekataliwa'};
 const mt='<option>M-Pesa</option><option>Tigo Pesa</option><option>Airtel Money</option><option>HaloPesa</option>';
 return `<div class="card hero"><div>Salio</div><div class="big">${tsh(u.balance)}</div></div>
-<div class="card"><b>Weka pesa</b><p class="mu">Weka kiasi (angalau TSh 500) na namba ya simu ya mobile money. Utapata ujumbe kwenye simu, thibitisha kwa PIN yako.</p><input id="da" type="number" min="500" placeholder="Kiasi (TSh)"><input id="dp" inputmode="tel" value="${esc(D.me.phone||'')}" placeholder="Namba ya simu, mfano 0712345678"><button class="btn" id="db" style="width:100%" onclick="dep()">Weka pesa</button></div>
+<div class="card"><b>Weka pesa</b><p class="mu">Weka kiasi (angalau TSh 500) na namba ya simu ya mobile money. Utapata ujumbe kwenye simu, thibitisha kwa PIN yako.</p><input id="da" type="number" min="500" placeholder="Kiasi (TSh)"><input id="dp" inputmode="tel" placeholder="Namba ya simu, mfano 0712345678"><button class="btn" id="db" style="width:100%" onclick="dep()">Weka pesa</button></div>
 <div class="card"><b>Toa pesa</b><p class="mu">Kiwango cha chini ${tsh(D.set.min_withdraw)}</p><select id="wm">${mt}</select><input id="wa" type="number" min="0" placeholder="Kiasi (TSh)"><input id="wr" placeholder="Namba ya simu ya kupokea"><button class="btn gh" style="width:100%" onclick="mk('withdraw')">Tuma ombi la withdraw</button></div>
 <h3 style="margin:14px 0 8px">Historia</h3>${L.map(x=>`<div class="card rw"><div><b>${ic[x.type]}</b><div class="mu">${esc(x.method)} · ${dt(x.created_at)}</div></div><div style="text-align:right"><b>${tsh(x.amount)}</b><div class="${cl[x.status]}" style="font-size:13px">${lb[x.status]}</div></div></div>`).join('')||'<p class="mu">Hakuna miamala bado.</p>'}`}
 async function dep(){const a=+V('da'),p=V('dp').trim();if(!(a>=500)||!p)return toast('Weka kiasi (angalau 500) na namba ya simu');
@@ -152,7 +148,7 @@ if(error||data?.error){let m=data?.error;if(!m&&error?.context)try{m=(await erro
 toast(data.message||'Angalia simu yako na uthibitishe');await load();
 for(let i=0;i<24;i++){await new Promise(r=>setTimeout(r,5000));await sb.functions.invoke('abliner-webhook');await load();if(!D.tx.some(x=>x.type=='deposit'&&x.method=='Abliner'&&x.status=='pending'))break}}
 function mk(type){const d=type=='deposit',a=+V(d?'da':'wa'),r=V(d?'dr':'wr').trim(),m=V(d?'dm':'wm');if(!(a>0)||!r)return toast('Jaza kiasi na namba');
-d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa').then(ok=>{if(ok)setTimeout(()=>showAd(),900)})}
+d?rpc('request_deposit',{p_amount:a,p_method:m,p_ref:r},'Ombi limetumwa'):rpc('request_withdraw',{p_amount:a,p_method:m,p_phone:r},'Ombi limetumwa')}
 /* INVITE, TOP, PROFILE, NOTIF */
 const link=()=>location.origin+location.pathname+'?ref='+D.me.referral_code;
 function invite(){const B=D.tx.filter(x=>x.user_id==D.me.id&&x.type=='bonus'&&x.status=='approved').reduce((s,x)=>s+x.amount,0);
@@ -163,25 +159,20 @@ ${D.rf.map(x=>`<div class="card rw"><span>${esc(x.username)}</span><span class="
 function cp(){try{navigator.clipboard.writeText(link());toast('Imenakiliwa')}catch(e){toast('Bonyeza link kuichagua kisha nakili')}}
 const wa=()=>window.open('https://wa.me/?text='+encodeURIComponent('Jiunge eArena TZ, cheza eFootball ushinde pesa: '+link()));
 const topv=()=>`<h2 style="margin-bottom:12px">Wachezaji bora</h2>${D.lb.map((x,i)=>`<div class="card rw"><span><b>${i+1}.</b> ${esc(x.username)} <span class="tag">${rank(x.xp)}</span></span><span class="mu">${x.xp} XP · ${x.wins} ushindi</span></div>`).join('')}`;
-const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Simu: ${esc(D.me.phone||'-')}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn" style="width:100%;margin-bottom:10px" onclick="installApp()">📲 Sakinisha app kwenye simu</button><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
+const prof=()=>`<div class="card"><h2>${esc(D.me.username)}</h2><div class="mu">Game ID: ${esc(D.me.game_id)}</div><div class="mu">Daraja: ${rank(D.me.xp)} · ${D.me.xp} XP · ${D.me.wins} ushindi</div></div><button class="btn" style="width:100%;margin-bottom:10px" onclick="installApp()">📲 Sakinisha app kwenye simu</button><button class="btn gh" style="width:100%" onclick="logout()">Toka</button>`;
 const notif=()=>`<h2 style="margin-bottom:12px">Taarifa</h2>${D.nt.map(n=>`<div class="card"><div>${esc(n.body)}</div><div class="mu">${dt(n.created_at)}</div></div>`).join('')||'<p class="mu">Hakuna taarifa.</p>'}`;
 /* ADMIN */
-function admin(){const T=[['sum','Muhtasari'],['tx','Miamala'],['tr','Mashindano'],['us','Watumiaji'],['an','Tangazo'],['ad','Ads'],['fn','Mapato'],['fq','FAQ'],['st','Mipangilio']];
+function admin(){const T=[['sum','Muhtasari'],['tx','Miamala'],['tr','Mashindano'],['us','Watumiaji'],['an','Tangazo'],['ad','Ads'],['fq','FAQ'],['kd','Kodi'],['st','Mipangilio']];
 const sm=t=>D.tx.filter(x=>x.type==t&&x.status=='approved').reduce((s,x)=>s+x.amount,0),pend=D.tx.filter(x=>x.status=='pending').length,un=i=>nm(i);let b='';
 if(atab=='sum')b=`<div class="card rw"><span>Watumiaji</span><b>${D.users.length}</b></div><div class="card rw"><span>Deposits zilizokubaliwa</span><b class="g">${tsh(sm('deposit'))}</b></div><div class="card rw"><span>Withdrawals zilizokubaliwa</span><b>${tsh(sm('withdraw'))}</b></div><div class="card rw"><span>Maombi yanayosubiri</span><b class="yl">${pend}</b></div><div class="card rw"><span>Mashindano</span><b>${D.tours.length}</b></div>`;
 if(atab=='tx')b=D.tx.filter(x=>['deposit','withdraw'].includes(x.type)).sort((a,b)=>(b.status=='pending')-(a.status=='pending')).map(x=>`<div class="card"><div class="rw"><b>${x.type=='deposit'?'⬇ Deposit':'⬆ Withdraw'} · ${tsh(x.amount)}</b><span class="tag">${x.status}</span></div><div class="mu">${un(x.user_id)} · ${esc(x.method)} · ${esc(x.reference)}</div>${x.status=='pending'?`<div class="rw" style="margin-top:8px"><button class="btn sm" onclick="rpc('admin_review_tx',{p_id:'${x.id}',p_approve:true},'Imekubaliwa')">Kubali</button><button class="btn sm rdb" onclick="rpc('admin_review_tx',{p_id:'${x.id}',p_approve:false},'Imekataliwa')">Kataa</button></div>`:''}</div>`).join('')||'<p class="mu">Hakuna miamala.</p>';
-if(atab=='tr')b=`<div class="card"><b>Unda mashindano</b><input id="nt" placeholder="Jina"><select id="ny"><option value="league">Ligi</option><option value="ko">Knockout</option></select><input id="nf" type="number" placeholder="Ada (0 = bure)"><input id="np" type="number" placeholder="Zawadi (TSh)"><input id="nx" type="number" placeholder="Wachezaji wa juu" value="8"><input id="nc" type="number" placeholder="Kamisheni % (si lazima)"><div class="mu" style="font-size:12px">Ukiweka kamisheni na ukaacha Zawadi tupu, zawadi inahesabiwa yenyewe: ada x wachezaji x (100 - kamisheni)%.</div><input id="ntx" placeholder="Zawadi ya bidhaa, mfano: Pad ya simu (si lazima)"><b style="display:block;margin-top:8px">🤝 Mdhamini (si lazima)</b><input id="ns" placeholder="Jina la mdhamini"><input id="nsl" placeholder="Link ya mdhamini (https://...)"><input id="nsf" type="number" placeholder="Ada ya udhamini aliyolipa (TSh)"><label>Nembo ya mdhamini</label><input id="nsg" type="file" accept="image/*"><label>Picha ya mashindano (si lazima)</label><input id="ni" type="file" accept="image/*"><label>Muda wa kucheza (si lazima)</label><input id="nd" type="datetime-local"><button class="btn" style="width:100%" onclick="newT()">Unda</button></div>`+D.tours.map(t=>`<div class="card"><div class="rw"><b>${esc(t.title)}</b><span class="tag ${t.status}">${t.status}</span></div><div class="mu">${pc(t)}/${t.max_players} wachezaji</div><textarea id="tc${t.id}" rows="2" placeholder="Code za mchezo (Room ID, nywila...). Waliojiunga wataziona.">${esc(D.codes.find(c=>c.tournament_id==t.id)?.code||'')}</textarea><button class="btn sm gh" onclick="saveCode('${t.id}')">Hifadhi code</button><div class="mu" style="margin-top:8px">Muda wa kucheza</div><input id="pd${t.id}" type="datetime-local" value="${t.play_at?lt(t.play_at):''}"><button class="btn sm gh" onclick="saveTime('${t.id}')">Hifadhi muda</button><div class="rw" style="margin:8px 0">${t.status=='open'?`<button class="btn sm" onclick="rpc('admin_start_tournament',{p_id:'${t.id}'},'Imeanza')">Anzisha</button>`:'<span></span>'}<button class="btn sm rdb" onclick="delT('${t.id}')">Futa</button></div>
+if(atab=='tr')b=`<div class="card"><b>Unda mashindano</b><input id="nt" placeholder="Jina"><select id="ny"><option value="league">Ligi</option><option value="ko">Knockout</option></select><input id="nf" type="number" placeholder="Ada (0 = bure)"><input id="np" type="number" placeholder="Zawadi (TSh)"><input id="nx" type="number" placeholder="Wachezaji wa juu" value="8"><label>Picha ya mashindano (si lazima)</label><input id="ni" type="file" accept="image/*"><label>Muda wa kucheza (si lazima)</label><input id="nd" type="datetime-local"><button class="btn" style="width:100%" onclick="newT()">Unda</button></div>`+D.tours.map(t=>`<div class="card"><div class="rw"><b>${esc(t.title)}</b><span class="tag ${t.status}">${t.status}</span></div><div class="mu">${pc(t)}/${t.max_players} wachezaji</div><textarea id="tc${t.id}" rows="2" placeholder="Code za mchezo (Room ID, nywila...). Waliojiunga wataziona.">${esc(D.codes.find(c=>c.tournament_id==t.id)?.code||'')}</textarea><button class="btn sm gh" onclick="saveCode('${t.id}')">Hifadhi code</button><div class="mu" style="margin-top:8px">Muda wa kucheza</div><input id="pd${t.id}" type="datetime-local" value="${t.play_at?lt(t.play_at):''}"><button class="btn sm gh" onclick="saveTime('${t.id}')">Hifadhi muda</button><div class="rw" style="margin:8px 0">${t.status=='open'?`<button class="btn sm" onclick="rpc('admin_start_tournament',{p_id:'${t.id}'},'Imeanza')">Anzisha</button>`:'<span></span>'}<button class="btn sm rdb" onclick="delT('${t.id}')">Futa</button></div>
 ${t.status=='live'?D.ms.filter(m=>m.tournament_id==t.id&&m.status!='done').map(m=>`<div style="padding:8px 0;border-top:1px solid var(--s2)"><div>${nm(m.player1)} vs ${nm(m.player2)} ${m.status=='disputed'?'<span class="rd">⚠ lalamiko</span>':''} ${m.status=='reported'?'<span class="g">· ametuma</span>':''}</div><input id="a${m.id}" class="sc" type="number" value="${m.rep1??''}"> - <input id="b${m.id}" class="sc" type="number" value="${m.rep2??''}"> <button class="btn sm" onclick="conf('${m.id}')">Thibitisha</button></div>`).join(''):''}</div>`).join('');
-if(atab=='us')b=D.users.map(u=>`<div class="card"><div class="rw"><b>${esc(u.username)}</b><span>${tsh(u.balance)}</span></div><div class="mu">${esc(u.phone||'-')} · ${rank(u.xp)}${u.is_banned?' · <span class="rd">amezuiwa</span>':''}${u.role=='admin'?' · admin':''}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="bal('${u.id}',${u.balance})">Badili salio</button><button class="btn sm ${u.is_banned?'':'rdb'}" onclick="rpc('admin_set_ban',{p_user:'${u.id}',p_ban:${!u.is_banned}})">${u.is_banned?'Fungua':'Zuia'}</button></div></div>`).join('');
+if(atab=='us')b=D.users.map(u=>`<div class="card"><div class="rw"><b>${esc(u.username)}</b><span>${tsh(u.balance)}</span></div><div class="mu">${esc(u.game_id)} · ${rank(u.xp)}${u.is_banned?' · <span class="rd">amezuiwa</span>':''}${u.role=='admin'?' · admin':''}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="bal('${u.id}',${u.balance})">Badili salio</button><button class="btn sm ${u.is_banned?'':'rdb'}" onclick="rpc('admin_set_ban',{p_user:'${u.id}',p_ban:${!u.is_banned}})">${u.is_banned?'Fungua':'Zuia'}</button></div></div>`).join('');
 if(atab=='st')b=`<div class="card"><label>Referral bonus (%)</label><input id="s1" type="number" value="${D.set.ref_pct}"><label>Kiwango cha chini cha withdraw</label><input id="s2" type="number" value="${D.set.min_withdraw}"><label>Namba ya kupokea malipo</label><input id="s3" value="${esc(D.set.pay_number)}"><button class="btn" style="width:100%" onclick="saveS()">Hifadhi</button></div><button class="btn gh" style="width:100%" onclick="bc()">Tuma tangazo kwa wote</button>`;
-if(atab=='fn')b=finAdm();if(atab=='an')b=annAdm();if(atab=='fq')b=fqAdm();if(atab=='ad')b=adAdm();return `<h2 style="margin-bottom:12px">Admin Panel</h2><div class="chips">${T.map(t=>`<button class="btn sm ${atab==t[0]?'':'gh'}" onclick="atab='${t[0]}';draw()">${t[1]}${t[0]=='tx'&&pend?' ('+pend+')':''}</button>`).join('')}</div>${b}`}
-async function newT(){const title=V('nt').trim();if(!title)return toast('Weka jina');
-const fee=+V('nf')||0,max=+V('nx')||8,com=+V('nc')||0,auto=V('np')==='';let prize=auto?0:+V('np');
-if(auto&&fee>0&&com>0&&com<100)prize=Math.round(fee*max*(100-com)/100);
-const sl=V('nsl').trim();if(sl&&!/^https?:\/\//.test(sl))return toast('Link ya mdhamini ianze na https://');
-const u=await upl('ni');if(u===false)return;const g=await upl('nsg');if(g===false)return;const d=V('nd');
-const{error}=await sb.from('tournaments').insert({title,type:V('ny'),entry_fee:fee,prize_pool:prize,max_players:max,commission_pct:com,prize_text:V('ntx').trim()||null,sponsor_name:V('ns').trim()||null,sponsor_link:sl||null,sponsor_fee:+V('nsf')||0,sponsor_logo:g?.url||null,image_url:u?.url||null,play_at:d?new Date(d).toISOString():null});
-error?toast(error.message):(toast(auto&&com>0&&prize>0?'Mashindano yameundwa. Zawadi: '+tsh(prize):'Mashindano yameundwa'),load())}
+if(atab=='an')b=annAdm();if(atab=='fq')b=fqAdm();if(atab=='ad')b=adAdm();if(atab=='kd')b=kdAdm();return `<h2 style="margin-bottom:12px">Admin Panel</h2><div class="chips">${T.map(t=>`<button class="btn sm ${atab==t[0]?'':'gh'}" onclick="atab='${t[0]}';draw()">${t[1]}${t[0]=='tx'&&pend?' ('+pend+')':''}</button>`).join('')}</div>${b}`}
+async function newT(){const title=V('nt').trim();if(!title)return toast('Weka jina');const u=await upl('ni');if(u===false)return;const d=V('nd');
+const{error}=await sb.from('tournaments').insert({title,type:V('ny'),entry_fee:+V('nf')||0,prize_pool:+V('np')||0,max_players:+V('nx')||8,image_url:u?.url||null,play_at:d?new Date(d).toISOString():null});error?toast(error.message):(toast('Mashindano yameundwa'),load())}
 const pt=t=>t.play_at?'📅 '+new Date(t.play_at).toLocaleString('sw-TZ',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
 const lt=d=>{const x=new Date(d);return new Date(x-x.getTimezoneOffset()*6e4).toISOString().slice(0,16)};
 async function saveTime(i){const d=V('pd'+i);const{error}=await sb.from('tournaments').update({play_at:d?new Date(d).toISOString():null}).eq('id',i);error?toast(error.message):(toast('Muda umehifadhiwa'),load())}
@@ -198,18 +189,15 @@ const ex=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')
 toast('Inapakia faili...');const{error}=await sb.storage.from('media').upload(p,f,{contentType:f.type});if(error){toast(error.message);return false}
 return{url:sb.storage.from('media').getPublicUrl(p).data.publicUrl,type:f.type.startsWith('video')?'video':'image'}}
 const annH=()=>D.an.slice(0,2).map(a=>`<div class="card"><div class="mu" style="font-size:11px">📢 TANGAZO · ${dt(a.created_at)}</div>${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:100%;border-radius:12px;margin:8px 0">`:''}<b>${esc(a.title)}</b><div>${esc(a.body)}</div></div>`).join('');
-const adc=a=>`<div class="card"><div class="mu" style="font-size:11px">${a.advertiser?'UDHAMINI · '+esc(a.advertiser):'MATANGAZO'}</div>${a.media_type=='video'?`<video src="${esc(a.media_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:12px;margin:8px 0"></video>`:a.media_type=='image'?`<img src="${esc(a.media_url)}" alt="" style="width:100%;border-radius:12px;margin:8px 0">`:''}<b>${esc(a.title)}</b><div>${esc(a.body)}</div>${a.link_url?`<a class="btn sm" style="margin-top:8px" href="${esc(a.link_url)}" target="_blank" rel="noopener" onclick="adEvt('${a.id}','click')">Fungua</a>`:''}</div>`;
-const adSeen=new Set();
-const adOn=a=>a.active&&(!a.ends_at||new Date(a.ends_at)>new Date());
-const adEvt=(i,k)=>{sb.rpc('ad_event',{p_id:i,p_kind:k}).then(()=>{})};
-const adsH=()=>{const L=D.ad.filter(adOn);L.forEach(a=>{if(!adSeen.has(a.id)){adSeen.add(a.id);adEvt(a.id,'view')}});return L.map(adc).join('')};
+const adc=a=>`<div class="card"><div class="mu" style="font-size:11px">MATANGAZO</div>${a.media_type=='video'?`<video src="${esc(a.media_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:12px;margin:8px 0"></video>`:a.media_type=='image'?`<img src="${esc(a.media_url)}" alt="" style="width:100%;border-radius:12px;margin:8px 0">`:''}<b>${esc(a.title)}</b><div>${esc(a.body)}</div>${a.link_url?`<a class="btn sm" style="margin-top:8px" href="${esc(a.link_url)}" target="_blank" rel="noopener">Fungua</a>`:''}</div>`;
+const adsH=()=>D.ad.filter(a=>a.active).map(adc).join('');
 const annAdm=()=>`<div class="card"><b>Tangazo jipya</b><input id="at" placeholder="Kichwa"><textarea id="ab" rows="3" placeholder="Maelezo"></textarea><label>Picha (si lazima)</label><input id="af" type="file" accept="image/*"><button class="btn" style="width:100%;margin-top:6px" onclick="postAnn()">Tuma kwa wote</button></div>`+D.an.map(a=>`<div class="card"><div class="rw"><b>${esc(a.title)}</b><button class="btn sm rdb" onclick="delAnn('${a.id}')">Futa</button></div>${a.image_url?`<img src="${esc(a.image_url)}" alt="" style="width:100%;border-radius:10px;margin-top:8px">`:''}<div class="mu">${dt(a.created_at)}</div></div>`).join('');
 async function postAnn(){const t=V('at').trim();if(!t)return toast('Weka kichwa');const u=await upl('af');if(u===false)return;
 const{error}=await sb.from('announcements').insert({title:t,body:V('ab').trim(),image_url:u?.url||null});error?toast(error.message):(toast('Tangazo limetumwa'),load())}
 async function delAnn(i){const{error}=await sb.from('announcements').delete().eq('id',i);error?toast(error.message):load()}
-const adAdm=()=>`<div class="card"><b>Ad mpya</b><input id="dt" placeholder="Kichwa (jina la biashara)"><textarea id="db2" rows="3" placeholder="Maandishi ya ad"></textarea><input id="dl" placeholder="Link (si lazima, ianze na https://)"><input id="dad" placeholder="Jina la mteja au mdhamini (si lazima)"><input id="dpa" type="number" placeholder="Kiasi alicholipa (TSh)"><input id="ddy" type="number" placeholder="Siku za kuonekana (acha tupu = bila kikomo)"><label>Picha au video (si lazima, max 50MB)</label><input id="df" type="file" accept="image/*,video/*"><button class="btn" style="width:100%;margin-top:6px" onclick="postAd()">Weka ad</button></div>`+D.ad.map(a=>`<div class="card"><div class="rw"><b>${esc(a.title)}</b><span class="tag ${a.active?'open':''}">${a.active?'inaonekana':'imezimwa'}</span></div><div class="mu">${a.advertiser?esc(a.advertiser)+' · ':''}${a.media_type} · 👁 ${a.views||0} · 👆 ${a.clicks||0}${a.views?' ('+Math.round((a.clicks||0)/a.views*100)+'%)':''}${a.paid>0?' · '+tsh(a.paid):''}${a.ends_at?' · hadi '+dt(a.ends_at):''}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="togAd('${a.id}',${!a.active})">${a.active?'Zima':'Washa'}</button><button class="btn sm rdb" onclick="delAd('${a.id}')">Futa</button></div></div>`).join('');
+const adAdm=()=>`<div class="card"><b>Ad mpya</b><input id="dt" placeholder="Kichwa (jina la biashara)"><textarea id="db2" rows="3" placeholder="Maandishi ya ad"></textarea><input id="dl" placeholder="Link (si lazima, ianze na https://)"><label>Picha au video (si lazima, max 50MB)</label><input id="df" type="file" accept="image/*,video/*"><button class="btn" style="width:100%;margin-top:6px" onclick="postAd()">Weka ad</button></div>`+D.ad.map(a=>`<div class="card"><div class="rw"><b>${esc(a.title)}</b><span class="tag ${a.active?'open':''}">${a.active?'inaonekana':'imezimwa'}</span></div><div class="mu">${a.media_type}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="togAd('${a.id}',${!a.active})">${a.active?'Zima':'Washa'}</button><button class="btn sm rdb" onclick="delAd('${a.id}')">Futa</button></div></div>`).join('');
 async function postAd(){const t=V('dt').trim();if(!t)return toast('Weka kichwa');const l=V('dl').trim();if(l&&!/^https?:\/\//.test(l))return toast('Link ianze na https://');
-const u=await upl('df');if(u===false)return;const{error}=await sb.from('ads').insert({title:t,body:V('db2').trim(),link_url:l||null,media_url:u?.url||null,media_type:u?.type||'text',advertiser:V('dad').trim()||null,paid:+V('dpa')||0,ends_at:+V('ddy')>0?new Date(Date.now()+V('ddy')*864e5).toISOString():null});error?toast(error.message):(toast('Ad imewekwa'),load())}
+const u=await upl('df');if(u===false)return;const{error}=await sb.from('ads').insert({title:t,body:V('db2').trim(),link_url:l||null,media_url:u?.url||null,media_type:u?.type||'text'});error?toast(error.message):(toast('Ad imewekwa'),load())}
 async function togAd(i,v){const{error}=await sb.from('ads').update({active:v}).eq('id',i);error?toast(error.message):load()}
 async function delAd(i){const{error}=await sb.from('ads').delete().eq('id',i);error?toast(error.message):load()}
 async function saveCode(i){const c=V('tc'+i).trim();const{error}=c?await sb.from('tournament_codes').upsert({tournament_id:i,code:c}):await sb.from('tournament_codes').delete().eq('tournament_id',i);error?toast(error.message):(toast('Code zimehifadhiwa'),load())}
@@ -234,6 +222,45 @@ const fqAdm=()=>`<div class="card"><b>Swali na jibu jipya</b><input id="fq1" pla
 async function saveFaq(){const q=V('fq1').trim(),k=V('fq2').trim(),a=V('fq3').trim();if(!q||!k||!a)return toast('Jaza sehemu zote tatu');const{error}=await sb.from('faqs').insert({question:q,keywords:k,answer:a,sort:D.faq.length+1});error?toast(error.message):(toast('Imehifadhiwa'),load())}
 async function delFaq(i){const{error}=await sb.from('faqs').delete().eq('id',i);error?toast(error.message):load()}
 
+/* ===== KODI ZA MECHI ===== */
+const fdt=t=>new Date(t).toLocaleString('sw-TZ',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const safeU=u=>/^https?:\/\//.test(u||'')?u:'#';
+const subEnd=()=>{const n=Date.now(),e=(D.subs||[]).map(s=>+new Date(s.ends_at)).filter(x=>x>n);return e.length?Math.max(...e):0};
+const kLink=()=>location.origin+location.pathname+'#kodi';
+const RSL={pending:['Inasubiri','yl'],won:['Imeshinda ✅','g'],lost:['Imepoteza ❌','rd'],void:['Imerudishwa','mu']};
+function kodiv(){const end=subEnd(),P=(D.plans||[]).filter(p=>p.active),T=D.tips||[],L=(D.bl||[]).filter(b=>b.active);
+const w=T.filter(t=>t.result=='won').length,l=T.filter(t=>t.result=='lost').length;
+return `<div class="card hero"><h2>🎯 Kodi za Mechi</h2><div>${end?'Kifurushi chako kinaisha: <b>'+fdt(end)+'</b>':'Huna kifurushi kinachoendelea. Chagua kifurushi hapa chini kuona odds na kodi.'}</div></div>
+<div class="card mu" style="font-size:13px">⚠️ Kwa wenye umri wa miaka 18+ tu. Kubashiri kuna hatari ya kupoteza pesa na hakuna ushindi wa uhakika. Cheza kwa kiasi, na usibashiri pesa usizoweza kupoteza.</div>
+<div class="rw" style="margin:14px 0 8px"><h3>Vifurushi</h3><button class="btn sm gh" onclick="go('wallet')">Weka pesa</button></div>
+${P.map(p=>`<div class="card rw"><div><b>${esc(p.name)}</b><div class="mu">Siku ${p.days}</div></div><div style="text-align:right"><b class="g">${tsh(p.price)}</b><div><button class="btn sm" style="margin-top:6px" onclick="buyPlan('${p.id}')">Nunua</button></div></div></div>`).join('')||'<p class="mu">Hakuna vifurushi kwa sasa.</p>'}
+<div class="rw" style="margin:18px 0 8px"><h3>Kodi za hivi karibuni</h3><span class="mu">✅ ${w} · ❌ ${l}</span></div>
+${T.map(t=>`<div class="card"><div class="rw"><b>${esc(t.title)}</b><span class="${RSL[t.result][1]}" style="font-size:13px">${RSL[t.result][0]}</span></div><div class="mu">${fdt(t.created_at)}${t.is_free?' · <span class="g">BURE</span>':''}</div>${t.unlocked?`${t.odds?`<div style="margin-top:6px">Odds: <b class="yl">${esc(t.odds)}</b></div>`:''}${t.code?`<div class="card" style="margin:8px 0 0;background:var(--bg)"><div class="mu" style="font-size:12px">Kodi</div><div style="white-space:pre-wrap;word-break:break-all;user-select:all"><b>${esc(t.code)}</b></div></div>`:''}${t.note?`<div class="mu" style="margin-top:6px;white-space:pre-wrap">${esc(t.note)}</div>`:''}`:'<div class="mu" style="margin-top:6px">🔒 Nunua kifurushi kuona odds na kodi</div>'}</div>`).join('')||'<p class="mu">Hakuna kodi bado. Rudi baadaye.</p>'}
+${L.length?`<h3 style="margin:18px 0 8px">Tovuti za kubashiri</h3>${L.map(b=>`<div class="card"><b>${esc(b.name)}</b>${b.description?`<div class="mu" style="margin:4px 0 8px">${esc(b.description)}</div>`:''}<a class="btn sm" href="${esc(safeU(b.url))}" target="_blank" rel="sponsored noopener noreferrer">Fungua</a></div>`).join('')}<div class="mu" style="font-size:12px">Viungo hivi vinaweza kutupa kamisheni ukijisajili. Soma masharti ya kila tovuti.</div>`:''}
+<div class="card" style="margin-top:14px"><label>Shiriki ukurasa huu</label><input readonly value="${esc(kLink())}" onclick="this.select()"><button class="btn sm" onclick="navigator.clipboard.writeText(kLink()).then(()=>toast('Imenakiliwa'),()=>toast('Bonyeza link kuichagua kisha nakili'))">Nakili link</button></div>`}
+const buyPlan=i=>{const p=(D.plans||[]).find(x=>x.id==i);if(!p)return;if(!confirm('Nunua '+p.name+' ('+p.days+' siku) kwa '+tsh(p.price)+'? Itakatwa kwenye wallet yako.'))return;rpc('buy_tip_plan',{p_plan:i},'Kifurushi kimefunguliwa!')};
+/* admin */
+async function kq(p,ok){const{error}=await p;error?toast(error.message):(ok&&toast(ok),load())}
+const kdAdm=()=>`<div class="card"><b>🔗 Link ya Kodi</b><div class="mu" style="margin:4px 0">Ukiiposti, atakayeibonyeza atapelekwa moja kwa moja kwenye ukurasa wa Kodi (baada ya kuingia).</div><input readonly value="${esc(kLink())}" onclick="this.select()"><button class="btn sm" onclick="navigator.clipboard.writeText(kLink()).then(()=>toast('Imenakiliwa'),()=>toast('Bonyeza link kuichagua kisha nakili'))">Nakili</button></div>
+<div class="card"><b>Vifurushi</b><div class="mu" style="margin:4px 0">Weka jina, idadi ya siku na bei. Mfano: Mwaka 1, siku 365.</div><input id="kp_n" placeholder="Jina (mfano: Wiki 1)"><input id="kp_d" type="number" min="1" placeholder="Siku (mfano: 7)"><input id="kp_p" type="number" min="0" placeholder="Bei (TSh)"><button class="btn" style="width:100%" onclick="addPlan()">Ongeza kifurushi</button></div>
+${(D.plans||[]).map(p=>`<div class="card"><div class="rw"><b>${esc(p.name)} · siku ${p.days}</b><span class="tag ${p.active?'open':''}">${p.active?'inaonekana':'imezimwa'}</span></div><div class="g">${tsh(p.price)}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="editPlan('${p.id}',${p.price})">Badili bei</button><button class="btn sm gh" onclick="togPlan('${p.id}',${!p.active})">${p.active?'Zima':'Washa'}</button><button class="btn sm rdb" onclick="delPlan('${p.id}')">Futa</button></div></div>`).join('')}
+<div class="card"><b>Weka kodi mpya</b><input id="kt_t" placeholder="Mechi (mfano: Yanga vs Simba)"><input id="kt_o" placeholder="Odds (mfano: 3.50)"><textarea id="kt_c" rows="2" placeholder="Kodi ya mechi / booking code"></textarea><textarea id="kt_n" rows="2" placeholder="Maelezo (si lazima)"></textarea><select id="kt_f"><option value="0">Ya kulipia</option><option value="1">Bure (kila mtu anaona)</option></select><button class="btn" style="width:100%" onclick="addTip()">Weka kodi</button></div>
+${(D.tips||[]).map(t=>`<div class="card"><div class="rw"><b>${esc(t.title)}</b><span class="${RSL[t.result][1]}" style="font-size:13px">${RSL[t.result][0]}</span></div><div class="mu">Odds ${esc(t.odds||'-')} · ${t.is_free?'bure':'ya kulipia'} · ${fdt(t.created_at)}</div><div style="white-space:pre-wrap;word-break:break-all">${esc(t.code||'')}</div><div class="rw" style="margin-top:8px;flex-wrap:wrap"><button class="btn sm" onclick="tipRes('${t.id}','won')">Imeshinda</button><button class="btn sm rdb" onclick="tipRes('${t.id}','lost')">Imepoteza</button><button class="btn sm gh" onclick="tipRes('${t.id}','void')">Rudisha</button><button class="btn sm gh" onclick="togFree('${t.id}',${!t.is_free})">${t.is_free?'Funga':'Fanya bure'}</button><button class="btn sm rdb" onclick="delTip('${t.id}')">Futa</button></div></div>`).join('')}
+<div class="card"><b>Tovuti za kubashiri (affiliate)</b><input id="kl_n" placeholder="Jina la tovuti"><input id="kl_u" placeholder="Link yako ya affiliate (https://...)"><textarea id="kl_d" rows="2" placeholder="Maelezo mafupi (si lazima)"></textarea><button class="btn" style="width:100%" onclick="addBl()">Ongeza link</button></div>
+${(D.bl||[]).map(b=>`<div class="card"><div class="rw"><b>${esc(b.name)}</b><span class="tag ${b.active?'open':''}">${b.active?'inaonekana':'imezimwa'}</span></div><div class="mu" style="word-break:break-all">${esc(b.url)}</div><div class="rw" style="margin-top:8px"><button class="btn sm gh" onclick="togBl('${b.id}',${!b.active})">${b.active?'Zima':'Washa'}</button><button class="btn sm rdb" onclick="delBl('${b.id}')">Futa</button></div></div>`).join('')}`;
+const addPlan=()=>{const n=V('kp_n').trim(),d=+V('kp_d');if(!n||!(d>0)||V('kp_p')==='')return toast('Jaza jina, siku na bei');kq(sb.from('tip_plans').insert({name:n,days:d,price:+V('kp_p'),sort:(D.plans||[]).length+1}),'Kifurushi kimeongezwa')};
+const editPlan=(i,c)=>ask('Bei mpya (TSh)',c,v=>{if(v!==''&&!isNaN(+v))kq(sb.from('tip_plans').update({price:+v}).eq('id',i),'Imebadilishwa')});
+const togPlan=(i,v)=>kq(sb.from('tip_plans').update({active:v}).eq('id',i));
+const delPlan=i=>confirm('Futa kifurushi hiki?')&&kq(sb.from('tip_plans').delete().eq('id',i));
+const addTip=()=>{const t=V('kt_t').trim();if(!t)return toast('Weka mechi');kq(sb.from('tips').insert({title:t,odds:V('kt_o').trim()||null,code:V('kt_c').trim()||null,note:V('kt_n').trim()||null,is_free:V('kt_f')=='1'}),'Kodi imewekwa')};
+const tipRes=(i,r)=>kq(sb.from('tips').update({result:r}).eq('id',i));
+const togFree=(i,v)=>kq(sb.from('tips').update({is_free:v}).eq('id',i));
+const delTip=i=>confirm('Futa kodi hii?')&&kq(sb.from('tips').delete().eq('id',i));
+const addBl=()=>{const n=V('kl_n').trim(),u=V('kl_u').trim();if(!n||!/^https?:\/\//.test(u))return toast('Weka jina na link inayoanza na https://');kq(sb.from('betting_links').insert({name:n,url:u,description:V('kl_d').trim()||null,sort:(D.bl||[]).length+1}),'Link imeongezwa')};
+const togBl=(i,v)=>kq(sb.from('betting_links').update({active:v}).eq('id',i));
+const delBl=i=>confirm('Futa link hii?')&&kq(sb.from('betting_links').delete().eq('id',i));
+addEventListener('hashchange',()=>{if(sess&&D.me&&location.hash=='#kodi'&&view!='kodi')go('kodi')});
+
 /* ===== PWA: sakinisha app kwenye simu ===== */
 let dip=null;
 const isStd=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -252,79 +279,4 @@ addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;showInst()})
 addEventListener('appinstalled',()=>{dip=null;hideInst();toast('App imesakinishwa!')});
 if(isIOS&&!isStd())setTimeout(showInst,3000);
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-/* ===== ARIFA (WEB PUSH) ===== */
-const VAPID_PUBLIC='BHmJflo7ZbzaXFssTLPKeG_ug3YPeFOjvSm00dNycImn8Ac2_RF8blmhUN0zPWMJ-dQ4HZKxusuRrmMoUuNU9_I';
-const b64u=s=>{const r=atob((s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
-async function pushSub(){try{const reg=await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();
-if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
-const j=sub.toJSON();const{error}=await sb.rpc('save_push',{p_endpoint:j.endpoint,p_p256dh:j.keys.p256dh,p_auth:j.keys.auth});return !error}catch(e){return false}}
-async function enablePush(){if(!('Notification' in window)||!('PushManager' in window))return toast('Kivinjari hiki hakiungi arifa. iPhone: sakinisha app kwanza (Add to Home Screen).');
-const p=await Notification.requestPermission();if(p!='granted')return toast('Arifa zimezuiwa. Ziruhusu kwenye mipangilio ya simu.');
-toast(await pushSub()?'Arifa zimewashwa!':'Imeshindwa kuwasha arifa');pushUI()}
-let pushDone=false;
-function pushUI(){let b=document.getElementById('pushbtn');
-if(!b){b=document.createElement('button');b.id='pushbtn';b.className='btn sm';b.textContent='🔔 Washa arifa';b.style.cssText='position:fixed;right:12px;bottom:84px;z-index:20;box-shadow:0 2px 10px #0008;display:none';b.onclick=enablePush;document.body.appendChild(b)}
-const can=!!(sess&&D.me&&!D.me.is_banned&&!adm&&'Notification' in window&&'PushManager' in window);
-b.style.display=can&&Notification.permission=='default'?'block':'none';
-if(can&&Notification.permission=='granted'&&!pushDone){pushDone=true;pushSub()}}
-const _draw=draw;draw=function(){_draw();pushUI()};
-/* ===== INTERSTITIAL (skip baada ya sekunde 5) ===== */
-let lastAd=0;
-function showAd(next){
-  const n=Date.now();
-  if(n-lastAd<90000||document.getElementById('advid')||!sess){if(next)next();return}
-  lastAd=n;
-  const m=document.createElement('div');m.id='advid';m.className='mod';m.style.cssText='flex-direction:column;z-index:80;background:#000d';
-  m.innerHTML='<div class="mu" style="margin-bottom:10px">Tangazo</div><div class="card" style="padding:10px;margin:0;width:auto"><iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;max-width:100%"></iframe></div><button class="btn gh" id="adsk" disabled style="margin-top:36px">Ruka baada ya 5</button>';
-  document.body.appendChild(m);
-  let c=5;const t=setInterval(()=>{c--;const b=document.getElementById('adsk');if(!b){clearInterval(t);return}
-    if(c>0)b.textContent='Ruka baada ya '+c;
-    else{clearInterval(t);b.disabled=false;b.textContent='Ruka ✕';b.onclick=()=>{m.remove();if(next)next()}}},1000)
-}
-const _go=go;go=function(v,a){const from=view;_go(v,a);if(v=='home'&&from!='home'&&sess&&D.me)showAd()};
-/* ===== POPUNDER (inapakiwa mara moja, haimhusu admin) ===== */
-let popOn=false;
-function loadPop(){
-  if(popOn||!sess||!D.me||D.me.role=='admin')return;
-  popOn=true;
-  const s=document.createElement('script');
-  s.src='https://abscloud.org/1/7c9c74964b47db01428e6e14dc5ff041';
-  s.setAttribute('data-cfasync','false');
-  document.body.appendChild(s);
-}
-/* ===== ADSTERRA BANNER ===== */
-function adToggle(on){
-  const b=document.getElementById('adbar');
-  if(!b)return;
-  if(!on){b.style.display='none';return}
-  b.style.display='block';loadPop();
-  if(!b.firstChild){
-    b.innerHTML='<iframe src="ad.html" width="320" height="50" scrolling="no" style="border:0;display:block;margin:0 auto;max-width:100%"></iframe>';
-  }
-}
-
-/* ===== MWALIKAJI BORA (top 10) ===== */
-const invH=()=>{const L=D.inv||[],med=['🥇','🥈','🥉'];
-return `<div class="card"><div class="rw"><b>🎁 Mwalikaji Bora</b><span class="tag">Top 10</span></div><div class="mu" style="margin:4px 0 8px">Anayealika wachezaji wengi waliojiunga na mashindano anapata TSh 1,000, hata asiposhinda. Alika kupitia tab ya Alika.</div>`
-+(L.length?L.map((x,i)=>`<div class="rw" style="padding:7px 0;border-top:1px solid var(--s2)"><span>${med[i]||'<b>'+(i+1)+'.</b>'} ${esc(x.username)}${D.me&&x.id==D.me.id?' <span class="tag g">wewe</span>':''}</span><b class="g">${x.total}</b></div>`).join(''):'<p class="mu">Bado hakuna aliyealika. Kuwa wa kwanza!</p>')+`</div>`};
-
-/* ===== UDHAMINI, KAMISHENI NA MAPATO ===== */
-const prz=t=>[t.prize_pool>0?tsh(t.prize_pool):null,t.prize_text].filter(Boolean).join(' + ')||'-';
-const sponsorH=t=>t.sponsor_name?`<div class="rw" style="justify-content:flex-start;gap:8px;margin:6px 0">${t.sponsor_logo?`<img src="${esc(t.sponsor_logo)}" alt="" width="32" height="32" style="border-radius:8px;object-fit:cover">`:'🤝'}<span class="mu">Kwa udhamini wa</span>${t.sponsor_link?`<a href="${esc(t.sponsor_link)}" target="_blank" rel="noopener" style="color:var(--g)"><b>${esc(t.sponsor_name)}</b></a>`:`<b>${esc(t.sponsor_name)}</b>`}</div>`:'';
-const sumT=ty=>D.tx.filter(x=>x.type==ty&&x.status=='approved').reduce((s,x)=>s+x.amount,0);
-const finAdm=()=>{const fin=D.fin||[],inc=fin.filter(f=>f.kind=='income').reduce((s,f)=>s+f.amount,0),exp=fin.filter(f=>f.kind=='expense').reduce((s,f)=>s+f.amount,0);
-const entry=sumT('entry'),prize=sumT('prize'),spons=D.tours.reduce((s,t)=>s+(+t.sponsor_fee||0),0),adp=D.ad.reduce((s,a)=>s+(+a.paid||0),0),net=entry+spons+adp+inc-prize-exp;
-return `<div class="card"><b>Mapato (makadirio)</b>
-<div class="rw" style="margin-top:8px"><span class="mu">Ada za kujiunga</span><b>${tsh(entry)}</b></div>
-<div class="rw"><span class="mu">Ada za udhamini</span><b>${tsh(spons)}</b></div>
-<div class="rw"><span class="mu">Malipo ya ads</span><b>${tsh(adp)}</b></div>
-<div class="rw"><span class="mu">Mapato mengine (uliyoandika)</span><b>${tsh(inc)}</b></div>
-<div class="rw"><span class="mu">Zawadi zilizolipwa kwenye wallet</span><b class="rd">-${tsh(prize)}</b></div>
-<div class="rw"><span class="mu">Matumizi mengine (uliyoandika)</span><b class="rd">-${tsh(exp)}</b></div>
-<div class="rw" style="border-top:1px solid var(--s2);margin-top:8px;padding-top:8px"><b>Faida (makadirio)</b><b class="${net>=0?'g':'rd'}">${tsh(net)}</b></div>
-<p class="mu" style="font-size:12px">Zawadi ulizotuma kwa mkono (Abliner Send), ada za Abliner na gharama nyingine ziandike hapa chini ili hesabu iwe sahihi. Deposit na withdraw hazihesabiwi kama mapato.</p></div>
-<div class="card"><b>Andika mapato au matumizi</b><select id="fk"><option value="income">Mapato</option><option value="expense">Matumizi</option></select><input id="fa" type="number" placeholder="Kiasi (TSh)"><input id="fnn" placeholder="Maelezo (mfano: Zawadi ya bingwa)"><button class="btn" style="width:100%" onclick="saveFin()">Hifadhi</button></div>`
-+fin.map(f=>`<div class="card rw"><div><b class="${f.kind=='income'?'g':'rd'}">${f.kind=='income'?'+':'-'}${tsh(f.amount)}</b><div class="mu">${esc(f.note||'')} · ${dt(f.created_at)}</div></div><button class="btn sm rdb" onclick="delFin('${f.id}')">Futa</button></div>`).join('')};
-async function saveFin(){const a=+V('fa');if(!(a>0))return toast('Weka kiasi');const{error}=await sb.from('finance_entries').insert({kind:V('fk'),amount:a,note:V('fnn').trim()});error?toast(error.message):(toast('Imehifadhiwa'),load())}
-async function delFin(i){const{error}=await sb.from('finance_entries').delete().eq('id',i);error?toast(error.message):load()}
 </script></body></html>
